@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  # MySQL 8.0 설정
+  pay-db:
+    image: mysql:8.0
+    container_name: pay-db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: pay_service
+      TZ: Asia/Seoul
+    volumes:
+      - ./db/data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    restart: always
+
+  # Redis 설정
+  pay-redis:
+    image: redis:alpine
+    container_name: pay-redis
+    ports:
+      - "6379:6379"
+    restart: always
