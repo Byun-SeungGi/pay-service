@@ -1,5 +1,6 @@
 package com.pay.user.domain;
 
+import com.pay.global.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -11,15 +12,15 @@ import java.util.UUID;
 
 @Entity
 @Getter
-@Table(name = "USER")
+@Table(name = "users")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class User extends BaseTimeEntity {
 
-    // 유저번호
+    // 유저ID
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_no")
-    private Long userNo;
+    @Column(name = "user_id")
+    private Long userId;
 
     // 외부 식별 ID
     @Column(name = "external_id", nullable = false, unique = true, columnDefinition = "BINARY(16)")
