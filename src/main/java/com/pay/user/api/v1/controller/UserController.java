@@ -1,7 +1,7 @@
-package com.pay.user.api;
+package com.pay.user.api.v1.controller;
 
 import com.pay.global.response.ApiResponse;
-import com.pay.user.api.dto.UserSignUpRequestDto;
+import com.pay.user.api.v1.dto.UserSignUpRequestDto;
 import com.pay.user.application.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;

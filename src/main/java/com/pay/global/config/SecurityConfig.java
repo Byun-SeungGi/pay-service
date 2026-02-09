@@ -25,7 +25,7 @@ public class SecurityConfig {
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(formLogin -> formLogin.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/signUp", "/error").permitAll()
+                        .requestMatchers("/api/v1/users/signUp", "/error").permitAll()
                         .anyRequest().authenticated()
                 )
                 .build();

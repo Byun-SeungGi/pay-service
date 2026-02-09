@@ -1,4 +1,4 @@
-package com.pay.user.api.dto;
+package com.pay.user.api.v1.dto;
 
 import com.pay.user.domain.User;
 import jakarta.validation.constraints.Email;

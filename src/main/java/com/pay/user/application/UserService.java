@@ -1,6 +1,6 @@
 package com.pay.user.application;
 
-import com.pay.user.api.dto.UserSignUpRequestDto;
+import com.pay.user.api.v1.dto.UserSignUpRequestDto;
 import com.pay.user.domain.User;
 import com.pay.user.domain.UserRepository;
 import lombok.RequiredArgsConstructor;
