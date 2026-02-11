@@ -1,6 +1,7 @@
 package com.pay.user.api.v1.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pay.global.constant.ApiUrl;
 import com.pay.user.api.v1.dto.UserSignUpRequestDto;
 import com.pay.user.application.UserService;
 import org.junit.jupiter.api.DisplayName;
@@ -40,11 +41,11 @@ class UserControllerTest {
     @WithMockUser
     void signUp_success() throws Exception {
 
-        UserSignUpRequestDto request = new UserSignUpRequestDto("test@email.com", "password123!@#", "010-1234-5678");
+        UserSignUpRequestDto request = new UserSignUpRequestDto("test22@email.com", "password123!@#", "010-1237-5678");
 
         given(userService.signUp(any())).willReturn(1L);
 
-        mockMvc.perform(post("/api/v1/users/signUp")
+        mockMvc.perform(post(ApiUrl.SIGN_UP)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -61,7 +62,7 @@ class UserControllerTest {
 
         UserSignUpRequestDto emptyRequest = new UserSignUpRequestDto("", "", "");
 
-        mockMvc.perform(post("/api/v1/users/signUp")
+        mockMvc.perform(post(ApiUrl.SIGN_UP)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(emptyRequest)))

@@ -1,5 +1,6 @@
 package com.pay.user.api.v1.controller;
 
+import com.pay.global.constant.ApiUrl;
 import com.pay.global.response.ApiResponse;
 import com.pay.user.api.v1.dto.UserSignUpRequestDto;
 import com.pay.user.application.UserService;
@@ -14,9 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "1. 회원관리", description = "회원가입")
 @RestController
-@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
+
     private final UserService userService;
 
     /**
@@ -24,7 +25,7 @@ public class UserController {
      * [POST] /api/users/signUp
      */
     @Operation(summary = "회원가입", description = "이메일, 비밀번호, 전화번호를 기준으로 신규유저를 등록합니다.")
-    @PostMapping("/signUp")
+    @PostMapping(ApiUrl.SIGN_UP)
     public ApiResponse<Long> signUp(@RequestBody @Valid UserSignUpRequestDto request) {
 
         Long userId = userService.signUp(request);

@@ -1,5 +1,7 @@
 package com.pay.global.config;
 
+import com.pay.global.constant.ApiUrl;
+import com.pay.user.api.v1.controller.UserController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,7 +28,7 @@ public class SecurityConfig {
                 .formLogin(formLogin -> formLogin.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/v1/users/signUp",
+                                ApiUrl.SIGN_UP,
                                 "/error",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
