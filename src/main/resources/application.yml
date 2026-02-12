@@ -19,7 +19,7 @@ spring:
     baseline-on-migrate: true
 
 jwt:
-  secret: mIYRvt9mP8Gm5RRMQcx/4bBMfoeQD/Ep0hUMbFj1Cc04lOdBGBTXUUoDba8Cpdeep9hQQgkIdBbAb5njAMz3zw==
+  secret: ${JWT_SECRET}
   access-expiration: 86400
 
 logging:
