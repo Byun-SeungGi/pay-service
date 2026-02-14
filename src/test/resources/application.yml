@@ -9,3 +9,7 @@ spring:
       ddl-auto: create-drop
   flyway:
     enabled: false
+
+jwt:
+  secret: JxhRkDchxYaUlbEurN9dxNGt4LsJ8scCCD5aqvh2pZiA3YOpeVdNxyIlkITtda3q3AzXHq6bZcA2TMywTtp/5g==
+  access-expiration: 86400
