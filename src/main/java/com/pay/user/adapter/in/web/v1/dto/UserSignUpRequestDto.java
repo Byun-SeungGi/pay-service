@@ -1,6 +1,5 @@
-package com.pay.user.api.v1.dto;
+package com.pay.user.adapter.in.web.v1.dto;
 
-import com.pay.user.domain.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -9,8 +8,6 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
 
 @Getter
 @NoArgsConstructor
@@ -32,12 +29,4 @@ public class UserSignUpRequestDto {
     @NotBlank(message = "전화번호는 필수입니다.")
     @Pattern(regexp = "^\\d{3}-\\d{3,4}-\\d{4}$", message = "전화번호 형식이 올바르지 않습니다.") // [7]
     private String phoneNumber;
-
-    public User toEntity(String encPassword) {
-        return User.builder()
-                .email(this.email)
-                .password(encPassword)
-                .phoneNumber(this.phoneNumber)
-                .build();
-    }
 }

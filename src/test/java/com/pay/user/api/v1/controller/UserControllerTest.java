@@ -2,8 +2,9 @@ package com.pay.user.api.v1.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pay.global.constant.ApiUrl;
-import com.pay.user.api.v1.dto.UserSignUpRequestDto;
-import com.pay.user.application.UserService;
+import com.pay.user.adapter.in.web.v1.controller.UserController;
+import com.pay.user.adapter.in.web.v1.dto.UserSignUpRequestDto;
+import com.pay.user.application.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +13,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;

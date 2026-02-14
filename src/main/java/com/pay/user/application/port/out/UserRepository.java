@@ -1,10 +1,12 @@
-package com.pay.user.domain;
+package com.pay.user.application.port.out;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.pay.user.domain.User;
 
 import java.util.Optional;
 
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository {
+
+    User save(User user);
 
     Optional<User> findByEmail(String email);
 
