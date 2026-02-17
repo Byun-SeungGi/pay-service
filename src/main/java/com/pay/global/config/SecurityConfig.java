@@ -1,7 +1,6 @@
 package com.pay.global.config;
 
 import com.pay.global.constant.ApiUrl;
-import com.pay.user.api.v1.controller.UserController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
