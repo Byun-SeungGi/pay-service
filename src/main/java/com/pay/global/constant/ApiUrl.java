@@ -9,4 +9,5 @@ public final class ApiUrl {
 
     public static final String USER_URL = API_V1 + "/users";
     public static final String SIGN_UP = USER_URL + "/signUp";
+    public static final String LOGIN = USER_URL + "/login";
 }
