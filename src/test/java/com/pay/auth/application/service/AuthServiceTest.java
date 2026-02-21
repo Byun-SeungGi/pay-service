@@ -60,6 +60,6 @@ class AuthServiceTest {
         
         assertThatThrownBy(() -> authService.login(command))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("가입되지 않은 이메일입니다.");
+                .hasMessage("이메일 또는 비밀번호가 올바르지 않습니다.");
     }
 }
