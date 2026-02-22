@@ -36,7 +36,6 @@ public class SecurityConfig {
                         .requestMatchers(
                                 ApiUrl.SIGN_UP,
                                 ApiUrl.LOGIN,
-                                ApiUrl.ME,
                                 "/error",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",

@@ -1,6 +1,7 @@
 package com.pay.user.application.service;
 
 import com.pay.user.application.port.in.SignUpCommand;
+import com.pay.user.application.port.in.SignUpUseCase;
 import com.pay.user.domain.User;
 import com.pay.user.application.port.out.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class UserService {
+public class UserService implements SignUpUseCase {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
