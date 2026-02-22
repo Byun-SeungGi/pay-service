@@ -25,7 +25,7 @@ public class UserEntity extends BaseTimeEntity {
     @Column(name = "external_id", nullable = false, unique = true, columnDefinition = "BINARY(16)")
     private UUID externalId;
 
-    @Column(unique = true, length = 100)
+    @Column(nullable = false, unique = true, length = 100)
     private String email;
 
     @Column(nullable = false, length = 255)

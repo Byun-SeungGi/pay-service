@@ -1,7 +1,6 @@
-package com.pay.user.application;
+package com.pay.user.application.service;
 
 import com.pay.user.application.port.in.SignUpCommand;
-import com.pay.user.application.service.UserService;
 import com.pay.user.domain.User;
 import com.pay.user.application.port.out.UserRepository;
 import com.pay.user.domain.UserStatus;
