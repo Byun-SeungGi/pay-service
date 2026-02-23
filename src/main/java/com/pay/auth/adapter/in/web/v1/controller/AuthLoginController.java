@@ -3,6 +3,7 @@ package com.pay.auth.adapter.in.web.v1.controller;
 import com.pay.auth.adapter.in.web.v1.dto.AuthLoginRequestDto;
 import com.pay.auth.adapter.in.web.v1.dto.JwtTokenResponseDto;
 import com.pay.auth.application.port.in.AuthLoginCommand;
+import com.pay.auth.application.port.in.AuthLoginUseCase;
 import com.pay.auth.application.service.AuthService;
 import com.pay.global.constant.ApiUrl;
 import com.pay.global.response.ApiResponse;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthLoginController {
 
-    private final AuthService authService;
+    private final AuthLoginUseCase authLoginUseCase;
 
     /**
      * 로그인 API
@@ -29,7 +30,7 @@ public class AuthLoginController {
 
         AuthLoginCommand command = new AuthLoginCommand(request.getEmail(), request.getPassword());
 
-        String accessToken = authService.login(command);
+        String accessToken = authLoginUseCase.login(command);
 
         JwtTokenResponseDto response = new JwtTokenResponseDto(accessToken);
 

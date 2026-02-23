@@ -54,26 +54,28 @@ public class JwtTokenProvider {
                 .getSubject();
     }
 
-    public boolean validateToken(String token) {
+    public Claims validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return true;
+            return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
         } catch (SecurityException | MalformedJwtException e) {
-            log.info("잘못된 JWT 서명입니다.");
+            log.warn("잘못된 JWT 서명입니다.");
+            throw new JwtException("잘못된 JWT 서명입니다.", e);
         } catch (ExpiredJwtException e) {
-            log.info("만료된 JWT 토큰입니다.");
+            log.warn("만료된 JWT 토큰입니다.");
+            throw new JwtException("만료된 JWT 토큰입니다.", e);
         } catch (UnsupportedJwtException e) {
-            log.info("지원되지 않는 JWT 토큰입니다.");
+            log.warn("지원되지 않는 JWT 토큰입니다.");
+            throw new JwtException("지원되지 않는 JWT 토큰입니다.", e);
         } catch (IllegalArgumentException e) {
-            log.info("JWT 토큰이 잘못되었습니다.");
+            log.warn("JWT 토큰이 잘못되었습니다.");
+            throw new JwtException("JWT 토큰이 잘못되었습니다.", e);
         }
-
-        return false;
     }
 
-    public Authentication getAuthentication(String token) {
+    public Authentication getAuthentication(Claims claims) {
+        String email = claims.getSubject();
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(this.getEmail(token));
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
