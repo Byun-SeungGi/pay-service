@@ -6,6 +6,7 @@ import com.pay.user.adapter.in.web.v1.controller.UserController;
 import com.pay.user.adapter.in.web.v1.dto.UserProfileResponseDto;
 import com.pay.user.adapter.in.web.v1.dto.UserSignUpRequestDto;
 import com.pay.user.application.port.in.SignUpUseCase;
+import com.pay.user.application.port.in.UserProfileResult;
 import com.pay.user.application.port.in.UserQueryUseCase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -79,7 +80,7 @@ class UserControllerTest {
     @WithMockUser(username = "gowawa@naver.com")
     void getMyProfile_success() throws Exception {
 
-        UserProfileResponseDto response = new UserProfileResponseDto("gowawa@naver.com", "010-1234-1234");
+        UserProfileResult response = new UserProfileResult("gowawa@naver.com", "010-1234-1234");
 
         given(userQueryUseCase.getMyProfile("gowawa@naver.com")).willReturn(response);
 

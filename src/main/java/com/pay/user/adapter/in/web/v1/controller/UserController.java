@@ -6,6 +6,7 @@ import com.pay.user.adapter.in.web.v1.dto.UserProfileResponseDto;
 import com.pay.user.adapter.in.web.v1.dto.UserSignUpRequestDto;
 import com.pay.user.application.port.in.SignUpCommand;
 import com.pay.user.application.port.in.SignUpUseCase;
+import com.pay.user.application.port.in.UserProfileResult;
 import com.pay.user.application.port.in.UserQueryUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,11 +43,11 @@ public class UserController {
 
     @Operation(summary = "내정보 조회", description = "이메일, 전화번호를 기준으로 내 정보를 조회합니다.")
     @GetMapping(ApiUrl.ME)
-    public ApiResponse<UserProfileResponseDto> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
+    public ApiResponse<UserProfileResult> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
 
         String email = userDetails.getUsername();
 
-        UserProfileResponseDto response = userQueryUseCase.getMyProfile(email);
+        UserProfileResult response = userQueryUseCase.getMyProfile(email);
 
         return ApiResponse.success("내 정보 조회 성공", response);
     }
