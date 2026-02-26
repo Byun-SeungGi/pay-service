@@ -2,7 +2,6 @@ package com.pay.user.adapter.in.web.v1.controller;
 
 import com.pay.global.constant.ApiUrl;
 import com.pay.global.response.ApiResponse;
-import com.pay.user.adapter.in.web.v1.dto.UserProfileResponseDto;
 import com.pay.user.adapter.in.web.v1.dto.UserSignUpRequestDto;
 import com.pay.user.application.port.in.SignUpCommand;
 import com.pay.user.application.port.in.SignUpUseCase;
