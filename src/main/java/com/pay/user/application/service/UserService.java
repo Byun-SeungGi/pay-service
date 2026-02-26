@@ -4,7 +4,9 @@ import com.pay.user.application.port.in.SignUpCommand;
 import com.pay.user.application.port.in.SignUpUseCase;
 import com.pay.user.domain.User;
 import com.pay.user.application.port.out.UserRepository;
+import com.pay.user.domain.event.UserCreatedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +18,7 @@ public class UserService implements SignUpUseCase {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 회원가입
@@ -40,6 +43,8 @@ public class UserService implements SignUpUseCase {
 
         // 저장
         User saveUser = userRepository.save(newUser);
+
+        eventPublisher.publishEvent(new UserCreatedEvent(saveUser.getUserId()));
 
         return saveUser.getUserId();
     }

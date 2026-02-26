@@ -3,23 +3,24 @@ package com.pay.wallet.domain;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
 public class Wallet {
 
-    private Long walletId;
-    private UUID externalId;
-    private Long userId;
-    private float balance;
-    private Long version;
-    private WalletStatus status;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private final Long walletId;
+    private final UUID externalId;
+    private final Long userId;
+    private final BigDecimal balance;
+    private final Long version;
+    private final WalletStatus status;
+    private final LocalDateTime createdAt;
+    private final LocalDateTime updatedAt;
 
     @Builder(builderMethodName = "innerBuilder")
-    public Wallet(Long walletId, UUID externalId, Long userId, float balance, Long version, WalletStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Wallet(Long walletId, UUID externalId, Long userId, BigDecimal balance, Long version, WalletStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.walletId = walletId;
         this.externalId = externalId;
         this.userId = userId;
@@ -30,13 +31,24 @@ public class Wallet {
         this.updatedAt = updatedAt;
     }
 
-    public static Wallet create(Long userId, float balance, Long version, WalletStatus status) {
+    public static Wallet create(Long userId) {
         return Wallet.innerBuilder()
                 .userId(userId)
-                .balance(0L)
+                .balance(BigDecimal.ZERO)
                 .version(0L)
                 .externalId(UUID.randomUUID())
                 .status(WalletStatus.ACTIVE)
+                .build();
+    }
+
+    public static Wallet restore(Long walletId, UUID externalId, Long userId, BigDecimal balance, Long version, WalletStatus status) {
+        return Wallet.innerBuilder()
+                .walletId(walletId)
+                .externalId(externalId)
+                .userId(userId)
+                .balance(balance)
+                .version(version)
+                .status(status)
                 .build();
     }
 }
