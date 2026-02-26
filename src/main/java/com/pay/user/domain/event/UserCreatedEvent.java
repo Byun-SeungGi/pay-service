@@ -1,4 +1,4 @@
 package com.pay.user.domain.event;
 
-public record UserCreatedEvent(Long UserId) {
+public record UserCreatedEvent(Long userId) {
 }

@@ -41,7 +41,7 @@ public class Wallet {
                 .build();
     }
 
-    public static Wallet restore(Long walletId, UUID externalId, Long userId, BigDecimal balance, Long version, WalletStatus status) {
+    public static Wallet restore(Long walletId, UUID externalId, Long userId, BigDecimal balance, Long version, WalletStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
         return Wallet.innerBuilder()
                 .walletId(walletId)
                 .externalId(externalId)
@@ -49,6 +49,8 @@ public class Wallet {
                 .balance(balance)
                 .version(version)
                 .status(status)
+                .createdAt(createdAt)
+                .updatedAt(updatedAt)
                 .build();
     }
 }

@@ -42,6 +42,7 @@ public class WalletEntity extends BaseTimeEntity {
         WalletEntity entity = new WalletEntity();
         entity.walletId = wallet.getWalletId();
         entity.externalId = wallet.getExternalId();
+        entity.userId = wallet.getUserId();
         entity.balance = wallet.getBalance();
         entity.version = wallet.getVersion();
         entity.status = wallet.getStatus();
@@ -55,7 +56,9 @@ public class WalletEntity extends BaseTimeEntity {
                 this.userId,
                 this.balance,
                 this.version,
-                this.status
+                this.status,
+                this.getCreatedAt(),
+                this.getUpdatedAt()
         );
     }
 }
