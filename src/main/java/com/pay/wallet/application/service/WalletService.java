@@ -25,4 +25,6 @@ public class WalletService implements WalletCreateUseCase {
 
         walletRepository.save(wallet);
     }
+
+
 }

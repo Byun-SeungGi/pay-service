@@ -1,8 +1,13 @@
 package com.pay.wallet.adapter.out.database;
 
+import com.pay.wallet.domain.Wallet;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
 
 public interface WalletJpaRepository extends JpaRepository<WalletEntity, Long> {
 
     boolean existsByUserId(Long userId);
+
+    Optional<WalletEntity> findByUserId(Long userId);
 }

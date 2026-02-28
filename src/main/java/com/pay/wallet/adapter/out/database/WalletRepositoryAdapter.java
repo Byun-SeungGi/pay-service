@@ -5,6 +5,8 @@ import com.pay.wallet.domain.Wallet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 @RequiredArgsConstructor
 public class WalletRepositoryAdapter implements WalletRepository {
@@ -22,5 +24,11 @@ public class WalletRepositoryAdapter implements WalletRepository {
     @Override
     public boolean existsByUserId(Long userId) {
         return walletJpaRepository.existsByUserId(userId);
+    }
+
+    @Override
+    public Optional<Wallet> findByUserId(Long userId) {
+        return walletJpaRepository.findByUserId(userId)
+                .map(WalletEntity::toDomain);
     }
 }

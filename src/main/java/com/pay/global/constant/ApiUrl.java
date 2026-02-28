@@ -11,4 +11,7 @@ public final class ApiUrl {
     public static final String SIGN_UP = USER_URL + "/signUp";
     public static final String LOGIN = USER_URL + "/login";
     public static final String ME = USER_URL + "/me";
+
+    public static final String WALLET_URL = API_V1 + "/wallets";
+    public static final String CHARGE = WALLET_URL + "/charge";
 }

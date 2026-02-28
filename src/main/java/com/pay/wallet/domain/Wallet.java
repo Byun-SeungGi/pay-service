@@ -54,4 +54,23 @@ public class Wallet {
                 .updatedAt(updatedAt)
                 .build();
     }
+
+    // 지갑 충전
+    public Wallet charge(BigDecimal amount) {
+
+        if(amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("충전 금액은 0원보다 커야 합니다.");
+        }
+
+        return Wallet.innerBuilder()
+                .walletId(this.walletId)
+                .externalId(this.externalId)
+                .userId(this.userId)
+                .balance(this.balance.add(amount))
+                .version(this.version)
+                .status(this.status)
+                .createdAt(this.createdAt)
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
 }
