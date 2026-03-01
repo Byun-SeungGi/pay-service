@@ -2,8 +2,8 @@ package com.pay.user.application.service;
 
 import com.pay.user.application.port.in.SignUpCommand;
 import com.pay.user.application.port.in.SignUpUseCase;
-import com.pay.user.domain.User;
 import com.pay.user.application.port.out.UserRepository;
+import com.pay.user.domain.User;
 import com.pay.user.domain.event.UserCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class UserService implements SignUpUseCase {
 
     private final UserRepository userRepository;
