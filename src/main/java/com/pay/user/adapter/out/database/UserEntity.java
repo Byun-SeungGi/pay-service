@@ -56,16 +56,16 @@ public class UserEntity extends BaseTimeEntity {
 
     // 엔티티 → 도메인
     public User toDomain() {
-        return User.builder()
-                .userId(this.userId)
-                .externalId(this.externalId)
-                .email(this.email)
-                .password(this.password)
-                .phoneNumber(this.phoneNumber)
-                .status(this.status)
-                .withdrawnAt(this.getWithdrawnAt())
-                .createdAt(this.getCreatedAt())
-                .updatedAt(this.getUpdatedAt())
-                .build();
+        return User.restore(
+                this.userId,
+                this.externalId,
+                this.email,
+                this.password,
+                this.phoneNumber,
+                this.status,
+                this.withdrawnAt,
+                this.getCreatedAt(),
+                this.getUpdatedAt()
+        );
     }
 }

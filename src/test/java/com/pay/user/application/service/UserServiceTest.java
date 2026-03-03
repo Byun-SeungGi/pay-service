@@ -48,14 +48,17 @@ class UserServiceTest {
         given(userRepository.existsByPhoneNumber(any())).willReturn(false);
         given(passwordEncoder.encode(any())).willReturn("encodedPassword");
 
-        User fakeUser = User.builder()
-                .userId(1L)
-                .externalId(UUID.randomUUID())
-                .email("test@email.com")
-                .password("encodedPassword")
-                .phoneNumber("010-1234-5678")
-                .status(UserStatus.ACTIVE)
-                .build();
+        User fakeUser = User.restore(
+                1L,
+                UUID.randomUUID(),
+                "test@email.com",
+                "encodedPassword",
+                "010-1234-5678",
+                UserStatus.ACTIVE,
+                null,
+                null,
+                null
+        );
 
         given(userRepository.save(any())).willReturn(fakeUser);
 

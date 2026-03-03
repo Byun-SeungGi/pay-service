@@ -1,5 +1,6 @@
 package com.pay.global.jwt;
 
+import com.pay.wallet.domain.Wallet;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;

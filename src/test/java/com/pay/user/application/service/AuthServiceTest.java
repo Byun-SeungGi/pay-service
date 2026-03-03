@@ -40,7 +40,7 @@ class AuthServiceTest {
     @DisplayName("로그인 성공 시 JWT 토큰 반환")
     void login_success() throws Exception {
         AuthLoginCommand command = new AuthLoginCommand("gowawa@naver.com", "q!w2e3r4t5");
-        User fakeUser = User.builder().email("gowawa@naver.com").password("q!w2e3r4t5").status(UserStatus.ACTIVE).build();
+        User fakeUser = User.create("gowawa@naver.com", "q!w2e3r4t5", "010-1234-5678");
 
         given(userRepository.findByEmail(anyString())).willReturn(Optional.of(fakeUser));
         given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
