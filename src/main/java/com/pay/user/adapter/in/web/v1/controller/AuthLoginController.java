@@ -1,10 +1,9 @@
-package com.pay.auth.adapter.in.web.v1.controller;
+package com.pay.user.adapter.in.web.v1.controller;
 
-import com.pay.auth.adapter.in.web.v1.dto.AuthLoginRequestDto;
-import com.pay.auth.adapter.in.web.v1.dto.JwtTokenResponseDto;
-import com.pay.auth.application.port.in.AuthLoginCommand;
-import com.pay.auth.application.port.in.AuthLoginUseCase;
-import com.pay.auth.application.service.AuthService;
+import com.pay.user.adapter.in.web.v1.dto.AuthLoginRequestDto;
+import com.pay.user.adapter.in.web.v1.dto.JwtTokenResponseDto;
+import com.pay.user.application.port.in.AuthLoginCommand;
+import com.pay.user.application.port.in.AuthLoginUseCase;
 import com.pay.global.constant.ApiUrl;
 import com.pay.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;

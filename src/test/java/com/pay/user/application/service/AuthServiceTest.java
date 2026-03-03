@@ -1,7 +1,7 @@
-package com.pay.auth.application.service;
+package com.pay.user.application.service;
 
-import com.pay.auth.adapter.in.web.v1.dto.AuthLoginRequestDto;
-import com.pay.auth.application.port.in.AuthLoginCommand;
+import com.pay.user.adapter.in.web.v1.dto.AuthLoginRequestDto;
+import com.pay.user.application.port.in.AuthLoginCommand;
 import com.pay.global.jwt.JwtTokenProvider;
 import com.pay.user.application.port.out.UserRepository;
 import com.pay.user.domain.User;
@@ -57,7 +57,7 @@ class AuthServiceTest {
         AuthLoginCommand command = new AuthLoginCommand("asdfadfasdf@naver.com", "password123!");
 
         given(userRepository.findByEmail(anyString())).willReturn(Optional.empty());
-        
+
         assertThatThrownBy(() -> authService.login(command))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("이메일 또는 비밀번호가 올바르지 않습니다.");

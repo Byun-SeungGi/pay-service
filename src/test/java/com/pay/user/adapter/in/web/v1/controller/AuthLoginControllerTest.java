@@ -1,9 +1,9 @@
-package com.pay.auth.adapter.in.web.v1.controller;
+package com.pay.user.adapter.in.web.v1.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pay.auth.adapter.in.web.v1.dto.AuthLoginRequestDto;
-import com.pay.auth.application.port.in.AuthLoginCommand;
-import com.pay.auth.application.service.AuthService;
+import com.pay.user.adapter.in.web.v1.dto.AuthLoginRequestDto;
+import com.pay.user.application.port.in.AuthLoginCommand;
+import com.pay.user.application.service.AuthService;
 import com.pay.global.constant.ApiUrl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,8 +14,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-
-import javax.print.attribute.standard.Media;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
