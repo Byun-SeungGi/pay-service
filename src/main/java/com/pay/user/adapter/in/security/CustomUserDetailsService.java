@@ -1,4 +1,4 @@
-package com.pay.global.security;
+package com.pay.user.adapter.in.security;
 
 import com.pay.user.application.port.out.UserRepository;
 import com.pay.user.domain.User;
