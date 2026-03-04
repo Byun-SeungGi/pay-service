@@ -2,7 +2,8 @@ package com.pay.wallet.adapter.in.web.v1.controller;
 
 import com.pay.global.constant.ApiUrl;
 import com.pay.global.response.ApiResponse;
-import com.pay.global.security.CustomUserDetails;
+
+import com.pay.user.adapter.in.security.CustomUserDetails;
 import com.pay.wallet.adapter.in.web.v1.dto.WalletChargeRequestDto;
 import com.pay.wallet.application.port.in.WalletChargeUseCase;
 import com.pay.wallet.domain.Wallet;
