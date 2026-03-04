@@ -62,6 +62,10 @@ public class Wallet {
             throw new IllegalArgumentException("충전 금액은 0원보다 커야 합니다.");
         }
 
+        if(this.status != WalletStatus.ACTIVE) {
+            throw new IllegalStateException("사용할 수 있는 지갑이 아닙니다.");
+        }
+
         return Wallet.innerBuilder()
                 .walletId(this.walletId)
                 .externalId(this.externalId)
@@ -70,7 +74,7 @@ public class Wallet {
                 .version(this.version)
                 .status(this.status)
                 .createdAt(this.createdAt)
-                .updatedAt(LocalDateTime.now())
+                .updatedAt(this.updatedAt)
                 .build();
     }
 }

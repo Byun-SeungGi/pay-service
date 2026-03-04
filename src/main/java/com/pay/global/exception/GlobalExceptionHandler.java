@@ -22,4 +22,14 @@ public class GlobalExceptionHandler {
         String message = e.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail(message));
     }
+
+    @ExceptionHandler(ChargeRetryExhaustedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleChargeRetryExhaustedException(ChargeRetryExhaustedException e) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(ApiResponse.fail(e.getMessage()));
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalStateException(IllegalStateException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail(e.getMessage()));
+    }
 }
