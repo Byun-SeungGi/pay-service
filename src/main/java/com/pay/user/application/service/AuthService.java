@@ -1,7 +1,7 @@
-package com.pay.auth.application.service;
+package com.pay.user.application.service;
 
-import com.pay.auth.application.port.in.AuthLoginCommand;
-import com.pay.auth.application.port.in.AuthLoginUseCase;
+import com.pay.user.application.port.in.AuthLoginCommand;
+import com.pay.user.application.port.in.AuthLoginUseCase;
 import com.pay.global.jwt.JwtTokenProvider;
 import com.pay.user.application.port.out.UserRepository;
 import com.pay.user.domain.User;

@@ -1,7 +1,7 @@
-package com.pay.auth.application.service;
+package com.pay.user.application.service;
 
-import com.pay.auth.adapter.in.web.v1.dto.AuthLoginRequestDto;
-import com.pay.auth.application.port.in.AuthLoginCommand;
+import com.pay.user.adapter.in.web.v1.dto.AuthLoginRequestDto;
+import com.pay.user.application.port.in.AuthLoginCommand;
 import com.pay.global.jwt.JwtTokenProvider;
 import com.pay.user.application.port.out.UserRepository;
 import com.pay.user.domain.User;
@@ -40,7 +40,7 @@ class AuthServiceTest {
     @DisplayName("로그인 성공 시 JWT 토큰 반환")
     void login_success() throws Exception {
         AuthLoginCommand command = new AuthLoginCommand("gowawa@naver.com", "q!w2e3r4t5");
-        User fakeUser = User.builder().email("gowawa@naver.com").password("q!w2e3r4t5").status(UserStatus.ACTIVE).build();
+        User fakeUser = User.create("gowawa@naver.com", "q!w2e3r4t5", "010-1234-5678");
 
         given(userRepository.findByEmail(anyString())).willReturn(Optional.of(fakeUser));
         given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
@@ -57,7 +57,7 @@ class AuthServiceTest {
         AuthLoginCommand command = new AuthLoginCommand("asdfadfasdf@naver.com", "password123!");
 
         given(userRepository.findByEmail(anyString())).willReturn(Optional.empty());
-        
+
         assertThatThrownBy(() -> authService.login(command))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("이메일 또는 비밀번호가 올바르지 않습니다.");

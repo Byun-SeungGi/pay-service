@@ -1,4 +1,4 @@
-package com.pay.auth.adapter.in.web.v1.dto;
+package com.pay.user.adapter.in.web.v1.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;

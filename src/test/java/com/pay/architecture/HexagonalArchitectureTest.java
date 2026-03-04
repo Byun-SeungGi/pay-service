@@ -13,7 +13,7 @@ public class HexagonalArchitectureTest {
     static final ArchRule domain_should_not_depend_on_application_or_adapter =
             noClasses()
                     .that().resideInAPackage("..domain..")
-                    .should().dependOnClassesThat().resideInAnyPackage("..application..");
+                    .should().dependOnClassesThat().resideInAnyPackage("..application..", "..adapter..");
 
     @ArchTest
     static final ArchRule application_should_not_depend_on_adapter =
@@ -26,4 +26,10 @@ public class HexagonalArchitectureTest {
             noClasses()
                     .that().resideInAPackage("..domain..")
                     .should().dependOnClassesThat().resideInAPackage("org.springframework..");
+
+    @ArchTest
+    static final ArchRule global_should_not_depend_on_domain =
+            noClasses()
+                    .that().resideInAPackage("..global..")
+                    .should().dependOnClassesThat().resideInAnyPackage("..user..", "..wallet..");
 }

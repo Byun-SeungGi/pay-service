@@ -1,5 +1,6 @@
 package com.pay.wallet.domain;
 
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -19,8 +20,8 @@ public class Wallet {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    @Builder(builderMethodName = "innerBuilder")
-    public Wallet(Long walletId, UUID externalId, Long userId, BigDecimal balance, Long version, WalletStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    @Builder(builderMethodName = "innerBuilder", access = AccessLevel.PRIVATE)
+    private Wallet(Long walletId, UUID externalId, Long userId, BigDecimal balance, Long version, WalletStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.walletId = walletId;
         this.externalId = externalId;
         this.userId = userId;
