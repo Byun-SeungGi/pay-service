@@ -1,13 +1,11 @@
 package com.pay.wallet.application.service;
 
-import com.pay.global.exception.ChargeRetryExhaustedException;
 import com.pay.wallet.application.port.in.WalletChargeUseCase;
 import com.pay.wallet.application.port.out.WalletRepository;
 import com.pay.wallet.domain.Wallet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,10 +35,4 @@ public class WalletChargeService implements WalletChargeUseCase {
 
         return walletRepository.save(chargedWallet);
     }
-
-    @Recover
-    public Wallet chargeRecover(OptimisticLockingFailureException e, Long userId, BigDecimal amount) {
-        throw new ChargeRetryExhaustedException("잠시 후 다시 시도해주세요.");
-    }
-
 }
