@@ -2,7 +2,7 @@ package com.pay.global.config;
 
 import com.pay.global.constant.ApiUrl;
 import com.pay.global.jwt.JwtAuthenticationFilter;
-import com.pay.global.jwt.JwtTokenProvider;
+import com.pay.global.jwt.JwtTokenValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtTokenValidator jwtTokenValidator;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -42,7 +42,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenValidator), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 }

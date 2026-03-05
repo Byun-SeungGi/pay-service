@@ -19,7 +19,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtTokenValidator jwtTokenValidator;
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BEARER_PREFIX = "Bearer ";
 
@@ -29,9 +29,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = resolveToken(request);
 
         if(StringUtils.hasText(token)) {
-            Claims claims = jwtTokenProvider.validateToken(token);
+            Claims claims = jwtTokenValidator.validateToken(token);
             if(!ObjectUtils.isEmpty(claims)) {
-                Authentication authentication = jwtTokenProvider.getAuthentication(claims);
+                Authentication authentication = jwtTokenValidator.getAuthentication(claims);
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 

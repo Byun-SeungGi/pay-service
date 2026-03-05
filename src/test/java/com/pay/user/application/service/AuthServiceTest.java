@@ -1,11 +1,9 @@
 package com.pay.user.application.service;
 
-import com.pay.user.adapter.in.web.v1.dto.AuthLoginRequestDto;
 import com.pay.user.application.port.in.AuthLoginCommand;
-import com.pay.global.jwt.JwtTokenProvider;
+import com.pay.user.application.port.out.TokenProvider;
 import com.pay.user.application.port.out.UserRepository;
 import com.pay.user.domain.User;
-import com.pay.user.domain.UserStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +32,7 @@ class AuthServiceTest {
     private PasswordEncoder passwordEncoder;
 
     @Mock
-    private JwtTokenProvider jwtTokenProvider;
+    private TokenProvider tokenProvider;
 
     @Test
     @DisplayName("로그인 성공 시 JWT 토큰 반환")
@@ -44,7 +42,7 @@ class AuthServiceTest {
 
         given(userRepository.findByEmail(anyString())).willReturn(Optional.of(fakeUser));
         given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
-        given(jwtTokenProvider.createToken("gowawa@naver.com")).willReturn("mock.jwt.token");
+        given(tokenProvider.createToken("gowawa@naver.com")).willReturn("mock.jwt.token");
 
         String token = authService.login(command);
 
