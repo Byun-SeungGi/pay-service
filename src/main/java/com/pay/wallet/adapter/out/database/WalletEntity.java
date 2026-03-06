@@ -32,6 +32,7 @@ public class WalletEntity extends BaseTimeEntity {
     private BigDecimal balance;
 
     @Column(name = "version", nullable = false)
+    @Version
     private Long version;
 
     @Enumerated(EnumType.STRING)
