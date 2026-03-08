@@ -1,6 +1,7 @@
 package com.pay.user.adapter.in.security;
 
 import com.pay.user.domain.User;
+import com.pay.user.domain.UserStatus;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -52,6 +53,6 @@ public class CustomUserDetails implements UserDetails {
     // 계정 활성화 여부 (true : 활성화)
     @Override
     public boolean isEnabled() {
-        return true;
+        return user.getStatus().equals(UserStatus.ACTIVE);
     }
 }

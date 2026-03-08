@@ -1,6 +1,5 @@
 package com.pay.global.jwt;
 
-import com.pay.wallet.domain.Wallet;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -14,36 +13,19 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
-import java.util.Date;
 
 @Slf4j
 @Component
-public class JwtTokenProvider {
+public class JwtTokenValidator {
 
     private final Key key;
-    private final long accessExpiration;
     private final UserDetailsService userDetailsService;
 
-    public JwtTokenProvider(@Value("${jwt.secret}") String secretKey,
-                            @Value("${jwt.access-expiration}") long accessExpiration, UserDetailsService userDetailsService) {
-
+    public JwtTokenValidator(@Value("${jwt.secret}") String secretKey,
+                             UserDetailsService userDetailsService) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
-
-        this.accessExpiration = accessExpiration * 1000;
         this.userDetailsService = userDetailsService;
-    }
-
-    public String createToken(String email) {
-        long now = (new Date()).getTime();
-        Date validty = new Date(now + this.accessExpiration);
-
-        return Jwts.builder()
-                .setSubject(email)
-                .setIssuedAt(new Date())
-                .setExpiration(validty)
-                .signWith(this.key, SignatureAlgorithm.HS256)
-                .compact();
     }
 
     public String getEmail(String token) {

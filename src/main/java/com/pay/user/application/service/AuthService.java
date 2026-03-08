@@ -2,7 +2,7 @@ package com.pay.user.application.service;
 
 import com.pay.user.application.port.in.AuthLoginCommand;
 import com.pay.user.application.port.in.AuthLoginUseCase;
-import com.pay.global.jwt.JwtTokenProvider;
+import com.pay.user.application.port.out.TokenProvider;
 import com.pay.user.application.port.out.UserRepository;
 import com.pay.user.domain.User;
 import com.pay.user.domain.UserStatus;
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService implements AuthLoginUseCase {
 
     private final UserRepository userRepository;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final TokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;
 
     public String login(AuthLoginCommand command) {
@@ -33,6 +33,6 @@ public class AuthService implements AuthLoginUseCase {
             throw new IllegalArgumentException("활동 상태의 계정이 아닙니다.");
         }
 
-        return jwtTokenProvider.createToken(user.getEmail());
+        return tokenProvider.createToken(user.getEmail());
     }
 }
