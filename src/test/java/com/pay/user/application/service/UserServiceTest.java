@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.pay.user.application.port.out.UserCreatedEventOutboxRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -37,6 +38,9 @@ class UserServiceTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private UserCreatedEventOutboxRepository userCreatedEventOutboxRepository;
 
     @Test
     @DisplayName("회원가입 성공")

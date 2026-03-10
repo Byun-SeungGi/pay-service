@@ -1,9 +1,9 @@
 package com.pay.wallet.adapter.in.scheduler;
 
+import com.pay.user.application.port.out.UserCreatedEventOutboxRepository;
+import com.pay.user.domain.UserCreatedEventOutbox;
+import com.pay.user.domain.UserCreatedEventStatus;
 import com.pay.wallet.application.port.in.WalletCreateUseCase;
-import com.pay.wallet.application.port.out.WalletCreationTaskRepository;
-import com.pay.wallet.domain.WalletCreationTask;
-import com.pay.wallet.domain.WalletCreationTaskStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,23 +17,21 @@ import java.util.List;
 public class WalletCreationScheduler {
 
     private final WalletCreateUseCase walletCreateUseCase;
-    private final WalletCreationTaskRepository walletCreationTaskRepository;
+    private final UserCreatedEventOutboxRepository userCreatedEventOutboxRepository;
 
     @Scheduled(fixedDelay = 30000)
     public void retryFailWalletCreations() {
-        List<WalletCreationTask> failedTasks = walletCreationTaskRepository.findByStatus(WalletCreationTaskStatus.FAILED);
+        List<UserCreatedEventOutbox> pendingEvents = userCreatedEventOutboxRepository.findByStatus(UserCreatedEventStatus.PENDING);
 
-        for(WalletCreationTask task : failedTasks) {
+        for(UserCreatedEventOutbox event : pendingEvents) {
             try {
-                walletCreateUseCase.createWallet(task.getUserId());
-                task.complete();
-                walletCreationTaskRepository.save(task);
-                log.info("보상 로직 - 지갑 생성 완료 - userId : {}", task.getUserId());
+                walletCreateUseCase.createWallet(event.getUserId());
+                event.complete();
+                userCreatedEventOutboxRepository.save(event);
+                log.info("보상 로직 - 지갑 생성 완료 - userId : {}", event.getUserId());
             } catch (Exception e) {
-                log.error("보상 로직 - 지갑 생성 실패 - userId : {}", task.getUserId());
+                log.error("보상 로직 - 지갑 생성 실패 - userId : {}", event.getUserId());
             }
         }
     }
-
-
 }
