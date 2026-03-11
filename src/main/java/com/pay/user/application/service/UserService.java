@@ -2,8 +2,10 @@ package com.pay.user.application.service;
 
 import com.pay.user.application.port.in.SignUpCommand;
 import com.pay.user.application.port.in.SignUpUseCase;
+import com.pay.user.application.port.out.UserCreatedEventOutboxRepository;
 import com.pay.user.application.port.out.UserRepository;
 import com.pay.user.domain.User;
+import com.pay.user.domain.UserCreatedEventOutbox;
 import com.pay.user.domain.event.UserCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -18,7 +20,7 @@ public class UserService implements SignUpUseCase {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher eventPublisher;
-
+    private final UserCreatedEventOutboxRepository userCreatedEventOutboxRepository;
     /**
      * 회원가입
      * @param command 회원가입 요청 정보
@@ -29,10 +31,10 @@ public class UserService implements SignUpUseCase {
 
         // 중복체크
         validateDuplicateUser(command);
-        
+
         // 비밀번호 단방향 해싱
         String encPassword = passwordEncoder.encode(command.password());
-        
+
         // 도메인 객체 생성
         User newUser = User.create(
                 command.email(),
@@ -42,6 +44,8 @@ public class UserService implements SignUpUseCase {
 
         // 저장
         User saveUser = userRepository.save(newUser);
+
+        userCreatedEventOutboxRepository.save(UserCreatedEventOutbox.pending(saveUser.getUserId()));
 
         eventPublisher.publishEvent(new UserCreatedEvent(saveUser.getUserId()));
 
