@@ -9,4 +9,6 @@ public interface LedgerRepository {
     Ledger save(Ledger ledger);
 
     List<Ledger> findByWalletId(Long walletId);
+
+    boolean existsByTransactionId(String transactionId);
 }

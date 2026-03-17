@@ -7,4 +7,6 @@ import java.util.List;
 public interface LedgerJpaRepository extends JpaRepository<LedgerEntity, Long> {
 
     List<LedgerEntity> findByWalletId(Long walletId);
+
+    boolean existsByTransactionId(String transactionId);
 }

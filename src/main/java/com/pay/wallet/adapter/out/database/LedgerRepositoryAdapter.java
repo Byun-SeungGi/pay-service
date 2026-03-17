@@ -28,4 +28,9 @@ public class LedgerRepositoryAdapter implements LedgerRepository {
                 .map(LedgerEntity::toDomain)
                 .toList();
     }
+
+    @Override
+    public boolean existsByTransactionId(String transactionId) {
+        return ledgerJpaRepository.existsByTransactionId(transactionId);
+    }
 }
