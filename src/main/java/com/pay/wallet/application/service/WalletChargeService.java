@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 
 @Slf4j
 @Service
@@ -34,18 +36,23 @@ public class WalletChargeService implements WalletChargeUseCase {
     @Transactional
     public Wallet charge(Long userId, BigDecimal amount, String transactionId) {
 
+        Instant keyCreatedAt = extractTimestamp(transactionId);
+        if (keyCreatedAt.isBefore(Instant.now().minus(Duration.ofDays(4)))) {
+            throw new IllegalArgumentException("만료된 멱등성 키입니다.");
+        }
 
+        String namespacedId = userId + "::" + transactionId;
 
         Wallet wallet = walletRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("지갑이 존재하지 않습니다."));
 
-        if(ledgerRepository.existsByTransactionId(transactionId)) {
+        if(ledgerRepository.existsByTransactionId(namespacedId)) {
             log.info("중복 충전 요청 감지 - transactionId : {}, userId : {}", transactionId, userId);
             return wallet;
         }
 
         Wallet chargedWallet = wallet.charge(amount);
-        Ledger ledger = Ledger.create(chargedWallet.getWalletId(), transactionId, ReferenceType.CHARGE,
+        Ledger ledger = Ledger.create(chargedWallet.getWalletId(), namespacedId, ReferenceType.CHARGE,
                 chargedWallet.getWalletId(), TransactionType.CREDIT, amount, chargedWallet.getBalance(), "충전"
         );
         Wallet savedWallet = walletRepository.save(chargedWallet);
@@ -53,5 +60,10 @@ public class WalletChargeService implements WalletChargeUseCase {
         ledgerRepository.save(ledger);
 
         return savedWallet;
+    }
+
+    private Instant extractTimestamp(String uuid) {
+        long timestamp = Long.parseLong(uuid.replace("-", "").substring(0, 12), 16);
+        return Instant.ofEpochMilli(timestamp);
     }
 }
