@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
@@ -27,10 +28,10 @@ public class WalletChargeController {
     
     @Operation(summary = "금액 충전", description = "userId에 해당하는 지갑에 amount를 이용하여 충전합니다.")
     @PostMapping(ApiUrl.CHARGE)
-    public ApiResponse<BigDecimal> charge(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody @Valid WalletChargeRequestDto request) {
+    public ApiResponse<BigDecimal> charge(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody @Valid WalletChargeRequestDto request, @RequestHeader("Idempotency-Key") String transactionId) {
 
         Long userId = userDetails.getUser().getUserId();
-        Wallet wallet = walletChargeUseCase.charge(userId, request.amount());
+        Wallet wallet = walletChargeUseCase.charge(userId, request.amount(), transactionId);
 
         return ApiResponse.success("충전이 완료되었습니다.", wallet.getBalance());
     }

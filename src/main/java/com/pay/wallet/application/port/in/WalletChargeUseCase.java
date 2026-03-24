@@ -6,5 +6,5 @@ import java.math.BigDecimal;
 
 public interface WalletChargeUseCase {
 
-    Wallet charge(Long userId, BigDecimal amount);
+    Wallet charge(Long userId, BigDecimal amount, String transactionId);
 }
