@@ -77,4 +77,51 @@ public class Wallet {
                 .updatedAt(this.updatedAt)
                 .build();
     }
+
+    public Wallet withDraw(BigDecimal amount) {
+        if(amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("출금 금액은 0보다 커야 합니다.");
+        }
+
+        if(this.status != WalletStatus.ACTIVE) {
+            throw new IllegalStateException("사용할 수 있는 지갑이 아닙니다.");
+        }
+
+        if(this.balance.compareTo(amount) < 0) {
+            throw new IllegalArgumentException("잔액이 부족합니다.");
+        }
+
+        return Wallet.innerBuilder()
+                .walletId(this.walletId)
+                .externalId(this.externalId)
+                .userId(this.userId)
+                .balance(this.balance.subtract(amount))
+                .version(this.version)
+                .status(this.status)
+                .createdAt(this.createdAt)
+                .updatedAt(this.updatedAt)
+                .build();
+    }
+
+    public Wallet deposit(BigDecimal amount) {
+
+        if(amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("입금 금액은 0원보다 커야 합니다.");
+        }
+
+        if(this.status != WalletStatus.ACTIVE) {
+            throw new IllegalStateException("사용할 수 있는 지갑이 아닙니다.");
+        }
+
+        return Wallet.innerBuilder()
+                .walletId(this.walletId)
+                .externalId(this.externalId)
+                .userId(this.userId)
+                .balance(this.balance.add(amount))
+                .version(this.version)
+                .status(this.status)
+                .createdAt(this.createdAt)
+                .updatedAt(this.updatedAt)
+                .build();
+    }
 }
