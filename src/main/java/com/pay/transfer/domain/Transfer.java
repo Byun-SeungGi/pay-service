@@ -92,6 +92,10 @@ public class Transfer {
         return modifyStatus(TransferStatus.REFUNDED);
     }
 
+    public boolean isCompleted() {
+        return this.status == TransferStatus.COMPLETED;
+    }
+
     private Transfer modifyStatus(TransferStatus status) {
         return Transfer.innerBuilder()
                 .transferId(this.transferId)

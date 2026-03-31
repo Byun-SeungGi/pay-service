@@ -37,6 +37,10 @@ public class TransferController {
                 request.memo()
         );
 
+        if(!transfer.isCompleted()) {
+            return ApiResponse.fail("송금에 실패했습니다.");
+        }
+
         return ApiResponse.success("송금이 완료되었습니다.", transfer.getTransferId());
     }
 }
