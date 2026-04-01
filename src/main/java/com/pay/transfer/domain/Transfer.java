@@ -82,6 +82,9 @@ public class Transfer {
     }
 
     public Transfer fail() {
+        if(this.status != TransferStatus.REQUESTED) {
+            throw new IllegalStateException("실패 처리가 가능한 상태가 아닙니다.");
+        }
         return modifyStatus(TransferStatus.FAILED);
     }
 
@@ -92,9 +95,17 @@ public class Transfer {
         return modifyStatus(TransferStatus.REFUNDED);
     }
 
+    public Transfer refundFail() {
+        if(this.status != TransferStatus.WITHDRAWN) {
+            throw new IllegalStateException("환불 처리가 가능한 상태가 아닙니다.");
+        }
+        return modifyStatus(TransferStatus.REFUND_FAILED);
+    }
+
     public boolean isCompleted() {
         return this.status == TransferStatus.COMPLETED;
     }
+
 
     private Transfer modifyStatus(TransferStatus status) {
         return Transfer.innerBuilder()
@@ -104,6 +115,7 @@ public class Transfer {
                 .amount(this.amount)
                 .transactionId(this.transactionId)
                 .status(status)
+                .memo(this.memo)
                 .createdAt(this.createdAt)
                 .updatedAt(this.updatedAt)
                 .build();

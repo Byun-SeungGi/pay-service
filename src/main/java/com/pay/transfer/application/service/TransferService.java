@@ -29,13 +29,15 @@ public class TransferService implements TransferUseCase {
     @Transactional
     public Transfer transfer(Long senderUserId, Long receiverUserId, BigDecimal amount, String transactionId, String memo) {
 
-        transferRepository.findByTransactionId(transactionId)
+        String namespacedId = senderUserId + "::" + transactionId;
+
+        transferRepository.findByTransactionId(namespacedId)
             .ifPresent(transfer -> {
                 throw new IllegalStateException("이미 처리된 송금 요청입니다.");
         });
 
         // Requested
-        Transfer transfer = Transfer.create(senderUserId, receiverUserId, amount, transactionId, memo);
+        Transfer transfer = Transfer.create(senderUserId, receiverUserId, amount, namespacedId, memo);
         Transfer savedTransfer = transferRepository.save(transfer);
 
         // Withdrawn
@@ -53,7 +55,7 @@ public class TransferService implements TransferUseCase {
 
         transferLedgerPort.save(Ledger.create(
             senderWallet.getWalletId(),
-            transactionId,
+            namespacedId,
             ReferenceType.REMITTANCE,
             updatedTransfer.getTransferId(),
             TransactionType.DEBIT,
@@ -68,9 +70,15 @@ public class TransferService implements TransferUseCase {
             receiverWallet = transferWalletPort.deposit(receiverUserId, amount);
         } catch (Exception e) {
             log.error("입금 실패, 환불 진행 - transactionId: {}, 사유 : {}", transactionId, e.getMessage());
-            transferWalletPort.deposit(senderUserId, amount);
-            Transfer refundedTransfer = updatedTransfer.refund();
-            return transferRepository.save(refundedTransfer);
+            try {
+                transferWalletPort.deposit(senderUserId, amount);
+                Transfer refundedTransfer = updatedTransfer.refund();
+                return transferRepository.save(refundedTransfer);
+            } catch (Exception ex) {
+                log.error("환불 실패 - transactionId: {}, 사유  {}", transactionId, ex.getMessage());
+                Transfer  refundFailedTransfer = updatedTransfer.refundFail();
+                return transferRepository.save(refundFailedTransfer);
+            }
         }
 
         Transfer completedTransfer = updatedTransfer.complete();
@@ -78,7 +86,7 @@ public class TransferService implements TransferUseCase {
 
         transferLedgerPort.save(Ledger.create(
             receiverWallet.getWalletId(),
-            transactionId,
+            namespacedId,
             ReferenceType.REMITTANCE,
             finalTransfer.getTransferId(),
             TransactionType.CREDIT,

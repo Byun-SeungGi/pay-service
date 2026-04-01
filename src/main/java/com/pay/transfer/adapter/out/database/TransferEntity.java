@@ -30,7 +30,7 @@ public class TransferEntity extends BaseTimeEntity {
     @Column(name = "amount", nullable = false)
     private BigDecimal amount;
 
-    @Column(name = "transaction_id", nullable = false)
+    @Column(name = "transaction_id", nullable = false, unique = true)
     private String transactionId;
 
     @Enumerated(EnumType.STRING)
