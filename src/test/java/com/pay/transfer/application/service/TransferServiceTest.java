@@ -48,7 +48,7 @@ class TransferServiceTest {
     @DisplayName("송금 성공")
     void transfer_success() {
         // given
-        given(transferRepository.findByTransactionId("tx-001")).willReturn(Optional.empty());
+        given(transferRepository.findByTransactionId("1::tx-001")).willReturn(Optional.empty());
         given(transferRepository.save(any(Transfer.class))).willAnswer(inv -> {
             Transfer t = inv.getArgument(0);
             return Transfer.restore(1L, t.getSenderUserId(), t.getReceiverUserId(),
@@ -78,8 +78,8 @@ class TransferServiceTest {
     void transfer_fail_duplicate_request() {
         // given
         Transfer existingTransfer = Transfer.restore(1L, 1L, 2L, BigDecimal.valueOf(10000),
-                "tx-001", TransferStatus.COMPLETED, "메모", LocalDateTime.now(), LocalDateTime.now());
-        given(transferRepository.findByTransactionId("tx-001")).willReturn(Optional.of(existingTransfer));
+                "1::tx-001", TransferStatus.COMPLETED, "메모", LocalDateTime.now(), LocalDateTime.now());
+        given(transferRepository.findByTransactionId("1::tx-001")).willReturn(Optional.of(existingTransfer));
 
         // when & then
         assertThatThrownBy(() -> transferService.transfer(1L, 2L, BigDecimal.valueOf(10000), "tx-001", "메모"))
@@ -95,7 +95,7 @@ class TransferServiceTest {
     @DisplayName("송금 실패 - 출금 실패")
     void transfer_fail_withdraw_failure() {
         // given
-        given(transferRepository.findByTransactionId("tx-001")).willReturn(Optional.empty());
+        given(transferRepository.findByTransactionId("1::tx-001")).willReturn(Optional.empty());
         given(transferRepository.save(any(Transfer.class))).willAnswer(inv -> {
             Transfer t = inv.getArgument(0);
             return Transfer.restore(1L, t.getSenderUserId(), t.getReceiverUserId(),
@@ -119,7 +119,7 @@ class TransferServiceTest {
     @DisplayName("송금 실패 - 입금 실패 후 환불")
     void transfer_fail_deposit_failure_refund() {
         // given
-        given(transferRepository.findByTransactionId("tx-001")).willReturn(Optional.empty());
+        given(transferRepository.findByTransactionId("1::tx-001")).willReturn(Optional.empty());
         given(transferRepository.save(any(Transfer.class))).willAnswer(inv -> {
             Transfer t = inv.getArgument(0);
             return Transfer.restore(1L, t.getSenderUserId(), t.getReceiverUserId(),
