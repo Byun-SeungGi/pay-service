@@ -5,6 +5,7 @@ import com.pay.transfer.application.port.out.TransferLedgerPort;
 import com.pay.transfer.application.port.out.TransferRepository;
 import com.pay.transfer.application.port.out.TransferWalletPort;
 import com.pay.transfer.domain.Transfer;
+import com.pay.transfer.domain.TransferStatus;
 import com.pay.wallet.domain.Ledger;
 import com.pay.wallet.domain.ReferenceType;
 import com.pay.wallet.domain.TransactionType;
@@ -12,7 +13,7 @@ import com.pay.wallet.domain.Wallet;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 
@@ -24,77 +25,92 @@ public class TransferService implements TransferUseCase {
     private final TransferRepository transferRepository;
     private final TransferWalletPort transferWalletPort;
     private final TransferLedgerPort transferLedgerPort;
+    private final TransactionTemplate transactionTemplate;
 
     @Override
-    @Transactional
     public Transfer transfer(Long senderUserId, Long receiverUserId, BigDecimal amount, String transactionId, String memo) {
 
         String namespacedId = senderUserId + "::" + transactionId;
 
-        transferRepository.findByTransactionId(namespacedId)
-            .ifPresent(transfer -> {
-                throw new IllegalStateException("이미 처리된 송금 요청입니다.");
+        // TX1 : 중복체크 + Transfer 생성
+        // 멱등성 키로 중복 요청 걸러내고 Transfer를 REQUESTED 상태로 저장.
+        Transfer saved = transactionTemplate.execute(status -> {
+            transferRepository.findByTransactionId(namespacedId)
+                 .ifPresent(transfer -> {
+                    throw new IllegalStateException("이미 처리된 송금 요청입니다.");
+                 });
+            return transferRepository.save(
+                    Transfer.create(senderUserId, receiverUserId, amount, namespacedId, memo));
         });
-
-        // Requested
-        Transfer transfer = Transfer.create(senderUserId, receiverUserId, amount, namespacedId, memo);
-        Transfer savedTransfer = transferRepository.save(transfer);
-
-        // Withdrawn
-        Wallet senderWallet;
+        
+        // TX2 : 출금 + 상태변경(WITHDRAWN) + 출금 원장
+        // withdraw와 save(withdrawn)를 하나의 TX로 묶어 돈은 빠졌는데 상태는 REQUESTED인 상황을 제거
+        // 실패 시 TX2 전체 롤백 -> 지갑 원래대로 복구
+        Transfer withdrawn;
         try {
-            senderWallet = transferWalletPort.withdraw(senderUserId, amount);
-        } catch (Exception e) {
+            withdrawn = transactionTemplate.execute(status -> {
+                Wallet senderWallet = transferWalletPort.withdraw(senderUserId, amount);
+                Transfer w = transferRepository.save(saved.withDraw());
+                saveLedger(senderWallet, namespacedId, w, TransactionType.DEBIT, amount, memo);
+                return w;
+            });
+        } catch(Exception e) {
             log.error("출금 실패 - transactionId : {}, 사유 : {}", transactionId, e.getMessage());
-            Transfer failedTransfer = savedTransfer.fail();
-            return transferRepository.save(failedTransfer);
+            return transactionTemplate.execute(status->
+                    transferRepository.save(saved.fail()));
         }
 
-        Transfer withdrawnTransfer = savedTransfer.withDraw();
-        Transfer updatedTransfer = transferRepository.save(withdrawnTransfer);
-
-        transferLedgerPort.save(Ledger.create(
-            senderWallet.getWalletId(),
-            namespacedId,
-            ReferenceType.REMITTANCE,
-            updatedTransfer.getTransferId(),
-            TransactionType.DEBIT,
-            amount,
-            senderWallet.getBalance(),
-            memo
-        ));
-
-        // Completed
-        Wallet receiverWallet;
+        // TX3 : 입금 + 상태변경(COMPLETED) + 입금 원장
+        // 실패 시 보상 트랜잭션(refund) 실행
         try {
-            receiverWallet = transferWalletPort.deposit(receiverUserId, amount);
+            return transactionTemplate.execute(status -> {
+                Wallet receiverWallet = transferWalletPort.deposit(receiverUserId, amount);
+                Transfer r = transferRepository.save(withdrawn.complete());
+                saveLedger(receiverWallet, namespacedId, r, TransactionType.CREDIT, amount, memo);
+                return r;
+            });
         } catch (Exception e) {
-            log.error("입금 실패, 환불 진행 - transactionId: {}, 사유 : {}", transactionId, e.getMessage());
-            try {
-                transferWalletPort.deposit(senderUserId, amount);
-                Transfer refundedTransfer = updatedTransfer.refund();
-                return transferRepository.save(refundedTransfer);
-            } catch (Exception ex) {
-                log.error("환불 실패 - transactionId: {}, 사유  {}", transactionId, ex.getMessage());
-                Transfer  refundFailedTransfer = updatedTransfer.refundFail();
-                return transferRepository.save(refundFailedTransfer);
-            }
+            log.error("입금 실패 - transactionId : {}, 사유 : {}", transactionId, e.getMessage());
+            return refund(withdrawn.getTransferId());
         }
+    }
 
-        Transfer completedTransfer = updatedTransfer.complete();
-        Transfer finalTransfer = transferRepository.save(completedTransfer);
 
-        transferLedgerPort.save(Ledger.create(
-            receiverWallet.getWalletId(),
-            namespacedId,
-            ReferenceType.REMITTANCE,
-            finalTransfer.getTransferId(),
-            TransactionType.CREDIT,
-            amount,
-            receiverWallet.getBalance(),  // 입금 후 잔액
-            memo
-        ));
+    /*
+        보상 트랜잭션 : 환불
 
-        return finalTransfer;
+        - 입금 실패 시 TransferService에서 직접 호출
+        - 서버 장애 시 RecoveryScheduler가 호출
+
+        SELECT FOR UPDATE로 락을 걸어서 원래 요청과 스케줄러가 동시에 환불하는 상황 방지
+    */
+    public Transfer refund(Long transferId) {
+        try {
+            return transactionTemplate.execute(status -> {
+               Transfer transfer = transferRepository.findByIdForUpdate(transferId)
+                    .orElseThrow(() -> new IllegalArgumentException("송금 건을 찾을 수 없습니다."));
+
+               if(transfer.getStatus() != TransferStatus.WITHDRAWN) {
+                   return transfer;
+               }
+
+               Wallet refundedWallet = transferWalletPort.deposit(transfer.getSenderUserId(), transfer.getAmount());
+               Transfer refunded = transferRepository.save(transfer.refund());
+               saveLedger(refundedWallet, transfer.getTransactionId(), refunded, TransactionType.CREDIT, transfer.getAmount(), transfer.getMemo());
+               return refunded;
+            });
+        } catch (Exception e) {
+            log.error("환불 실패 - transferId: {}, 사유: {}", transferId, e.getMessage());
+            return transactionTemplate.execute(status-> {
+                Transfer transfer = transferRepository.findByIdForUpdate(transferId)
+                    .orElseThrow();
+                return transferRepository.save(transfer.refundFail());
+            });
+        }
+    }
+
+    private void saveLedger(Wallet wallet, String namespacedId, Transfer transfer, TransactionType type, BigDecimal amount, String memo) {
+        transferLedgerPort.save(Ledger.create(wallet.getWalletId(), namespacedId, ReferenceType.REMITTANCE,
+                transfer.getTransferId(), type, amount, wallet.getBalance(), memo));
     }
 }
