@@ -8,12 +8,15 @@ import com.pay.transfer.domain.TransferStatus;
 import com.pay.wallet.domain.Ledger;
 import com.pay.wallet.domain.Wallet;
 import com.pay.wallet.domain.WalletStatus;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -25,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -43,6 +47,17 @@ class TransferServiceTest {
 
     @Mock
     private TransferLedgerPort transferLedgerPort;
+
+    @Mock
+    private TransactionTemplate transactionTemplate;
+
+    @BeforeEach
+    void setUp() {
+        willAnswer(inv -> {
+            TransactionCallback<?> callback = inv.getArgument(0);
+            return callback.doInTransaction(null);
+        }).given(transactionTemplate).execute(any());
+    }
 
     @Test
     @DisplayName("송금 성공")
@@ -133,6 +148,10 @@ class TransferServiceTest {
                 .willThrow(new RuntimeException("입금 처리 실패"));
         given(transferWalletPort.deposit(1L, BigDecimal.valueOf(10000))).willReturn(senderWallet);
         given(transferLedgerPort.save(any(Ledger.class))).willAnswer(inv -> inv.getArgument(0));
+        given(transferRepository.findByIdForUpdate(1L)).willReturn(Optional.of(
+                Transfer.restore(1L, 1L, 2L, BigDecimal.valueOf(10000),
+                        "1::tx-001", TransferStatus.WITHDRAWN, "메모",
+                        LocalDateTime.now(), LocalDateTime.now())));
 
         // when
         Transfer result = transferService.transfer(1L, 2L, BigDecimal.valueOf(10000), "tx-001", "메모");
@@ -141,7 +160,7 @@ class TransferServiceTest {
         assertThat(result.getStatus()).isEqualTo(TransferStatus.REFUNDED);
         verify(transferRepository, times(3)).save(any(Transfer.class));
         verify(transferWalletPort).deposit(1L, BigDecimal.valueOf(10000));
-        verify(transferLedgerPort, times(1)).save(any(Ledger.class));
+        verify(transferLedgerPort, times(2)).save(any(Ledger.class));
     }
 
     private Wallet createWallet(Long walletId, Long userId, BigDecimal balance) {
