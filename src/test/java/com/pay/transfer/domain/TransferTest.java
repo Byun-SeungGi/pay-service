@@ -58,29 +58,9 @@ class TransferTest {
     }
 
     @Test
-    @DisplayName("출금 상태 전이 성공 - REQUESTED → WITHDRAWN")
-    void withDraw_success() {
-        Transfer transfer = Transfer.create(1L, 2L, BigDecimal.valueOf(10000), "tx-001", "메모");
-
-        Transfer withdrawn = transfer.withDraw();
-
-        assertThat(withdrawn.getStatus()).isEqualTo(TransferStatus.WITHDRAWN);
-    }
-
-    @Test
-    @DisplayName("출금 상태 전이 실패 - REQUESTED가 아닌 상태")
-    void withDraw_fail_invalid_status() {
-        Transfer transfer = createTransferWithStatus(TransferStatus.COMPLETED);
-
-        assertThatThrownBy(transfer::withDraw)
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("출금 가능한 상태가 아닙니다.");
-    }
-
-    @Test
-    @DisplayName("완료 상태 전이 성공 - WITHDRAWN → COMPLETED")
+    @DisplayName("완료 상태 전이 성공 - REQUESTED → COMPLETED")
     void complete_success() {
-        Transfer transfer = createTransferWithStatus(TransferStatus.WITHDRAWN);
+        Transfer transfer = Transfer.create(1L, 2L, BigDecimal.valueOf(10000), "tx-001", "메모");
 
         Transfer completed = transfer.complete();
 
@@ -88,9 +68,9 @@ class TransferTest {
     }
 
     @Test
-    @DisplayName("완료 상태 전이 실패 - WITHDRAWN이 아닌 상태")
+    @DisplayName("완료 상태 전이 실패 - REQUESTED가 아닌 상태")
     void complete_fail_invalid_status() {
-        Transfer transfer = createTransferWithStatus(TransferStatus.REQUESTED);
+        Transfer transfer = createTransferWithStatus(TransferStatus.COMPLETED);
 
         assertThatThrownBy(transfer::complete)
                 .isInstanceOf(IllegalStateException.class)
@@ -98,27 +78,7 @@ class TransferTest {
     }
 
     @Test
-    @DisplayName("환불 상태 전이 성공 - WITHDRAWN → REFUNDED")
-    void refund_success() {
-        Transfer transfer = createTransferWithStatus(TransferStatus.WITHDRAWN);
-
-        Transfer refunded = transfer.refund();
-
-        assertThat(refunded.getStatus()).isEqualTo(TransferStatus.REFUNDED);
-    }
-
-    @Test
-    @DisplayName("환불 상태 전이 실패 - WITHDRAWN이 아닌 상태")
-    void refund_fail_invalid_status() {
-        Transfer transfer = createTransferWithStatus(TransferStatus.REQUESTED);
-
-        assertThatThrownBy(transfer::refund)
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("환불 가능한 상태가 아닙니다.");
-    }
-
-    @Test
-    @DisplayName("실패 상태 전이 - 어떤 상태에서든 가능")
+    @DisplayName("실패 상태 전이 성공")
     void fail_success() {
         Transfer transfer = Transfer.create(1L, 2L, BigDecimal.valueOf(10000), "tx-001", "메모");
 

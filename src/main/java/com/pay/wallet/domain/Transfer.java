@@ -67,15 +67,8 @@ public class Transfer {
                 .build();
     }
 
-    public Transfer withDraw() {
-        if(this.status != TransferStatus.REQUESTED) {
-            throw new IllegalStateException("출금 가능한 상태가 아닙니다.");
-        }
-        return modifyStatus(TransferStatus.WITHDRAWN);
-    }
-
     public Transfer complete() {
-        if(this.status != TransferStatus.WITHDRAWN) {
+        if(this.status != TransferStatus.REQUESTED) {
             throw new IllegalStateException("완료 가능한 상태가 아닙니다.");
         }
         return modifyStatus(TransferStatus.COMPLETED);
@@ -86,20 +79,6 @@ public class Transfer {
             throw new IllegalStateException("실패 처리가 가능한 상태가 아닙니다.");
         }
         return modifyStatus(TransferStatus.FAILED);
-    }
-
-    public Transfer refund() {
-        if(this.status != TransferStatus.WITHDRAWN) {
-            throw new IllegalStateException("환불 가능한 상태가 아닙니다.");
-        }
-        return modifyStatus(TransferStatus.REFUNDED);
-    }
-
-    public Transfer refundFail() {
-        if(this.status != TransferStatus.WITHDRAWN) {
-            throw new IllegalStateException("환불 처리가 가능한 상태가 아닙니다.");
-        }
-        return modifyStatus(TransferStatus.REFUND_FAILED);
     }
 
     public boolean isCompleted() {

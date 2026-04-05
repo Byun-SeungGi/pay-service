@@ -84,7 +84,7 @@ class TransferServiceTest {
 
         // then
         assertThat(result.getStatus()).isEqualTo(TransferStatus.COMPLETED);
-        verify(transferRepository, times(3)).save(any(Transfer.class));
+        verify(transferRepository, times(2)).save(any(Transfer.class));
         verify(walletRepository).findByUserIdForUpdate(1L);
         verify(walletRepository).findByUserIdForUpdate(2L);
         verify(walletRepository, times(2)).save(any(Wallet.class));
@@ -132,8 +132,8 @@ class TransferServiceTest {
     }
 
     @Test
-    @DisplayName("송금 실패 - 입금 실패 후 환불")
-    void transfer_fail_deposit_failure_refund() {
+    @DisplayName("송금 실패 - 입금 실패")
+    void transfer_fail_deposit_failure() {
         // given
         given(transferRepository.findByTransactionId("1::tx-001")).willReturn(Optional.empty());
         given(transferRepository.save(any(Transfer.class))).willAnswer(inv -> {
@@ -144,24 +144,17 @@ class TransferServiceTest {
         });
 
         Wallet senderWallet = createWallet(1L, 1L, BigDecimal.valueOf(50000));
-        Wallet receiverWallet = createWallet(2L, 2L, BigDecimal.valueOf(20000));
         given(walletRepository.findByUserIdForUpdate(1L)).willReturn(Optional.of(senderWallet));
-        given(walletRepository.findByUserIdForUpdate(2L))
-                .willReturn(Optional.empty());
+        given(walletRepository.findByUserIdForUpdate(2L)).willReturn(Optional.empty());
         given(walletRepository.save(any(Wallet.class))).willAnswer(inv -> inv.getArgument(0));
-        given(ledgerRepository.save(any(Ledger.class))).willAnswer(inv -> inv.getArgument(0));
-        given(transferRepository.findByIdForUpdate(1L)).willReturn(Optional.of(
-                Transfer.restore(1L, 1L, 2L, BigDecimal.valueOf(10000),
-                        "1::tx-001", TransferStatus.WITHDRAWN, "메모",
-                        LocalDateTime.now(), LocalDateTime.now())));
 
         // when
         Transfer result = transferService.transfer(1L, 2L, BigDecimal.valueOf(10000), "tx-001", "메모");
 
         // then
-        assertThat(result.getStatus()).isEqualTo(TransferStatus.REFUNDED);
-        verify(transferRepository, times(3)).save(any(Transfer.class));
-        verify(ledgerRepository, times(2)).save(any(Ledger.class));
+        assertThat(result.getStatus()).isEqualTo(TransferStatus.FAILED);
+        verify(transferRepository, times(2)).save(any(Transfer.class));
+        verify(ledgerRepository, never()).save(any(Ledger.class));
     }
 
     private Wallet createWallet(Long walletId, Long userId, BigDecimal balance) {
