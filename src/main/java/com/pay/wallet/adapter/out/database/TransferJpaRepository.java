@@ -1,6 +1,5 @@
-package com.pay.transfer.adapter.out.database;
+package com.pay.wallet.adapter.out.database;
 
-import com.pay.transfer.domain.Transfer;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;

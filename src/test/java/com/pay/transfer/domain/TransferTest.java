@@ -1,5 +1,7 @@
 package com.pay.transfer.domain;
 
+import com.pay.wallet.domain.Transfer;
+import com.pay.wallet.domain.TransferStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

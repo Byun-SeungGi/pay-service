@@ -1,8 +1,8 @@
-package com.pay.transfer.adapter.in.scheduler;
+package com.pay.wallet.adapter.in.scheduler;
 
-import com.pay.transfer.application.port.out.TransferRepository;
-import com.pay.transfer.application.service.TransferService;
-import com.pay.transfer.domain.Transfer;
+import com.pay.wallet.application.port.out.TransferRepository;
+import com.pay.wallet.application.service.TransferService;
+import com.pay.wallet.domain.Transfer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

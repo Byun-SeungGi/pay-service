@@ -1,4 +1,4 @@
-package com.pay.transfer.adapter.in.web.v1.dto;
+package com.pay.wallet.adapter.in.web.v1.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;

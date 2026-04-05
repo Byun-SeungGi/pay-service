@@ -1,7 +1,7 @@
-package com.pay.transfer.adapter.out.database;
+package com.pay.wallet.adapter.out.database;
 
-import com.pay.transfer.application.port.out.TransferRepository;
-import com.pay.transfer.domain.Transfer;
+import com.pay.wallet.application.port.out.TransferRepository;
+import com.pay.wallet.domain.Transfer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

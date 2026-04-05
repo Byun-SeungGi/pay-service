@@ -1,10 +1,11 @@
 package com.pay.transfer.application.service;
 
-import com.pay.transfer.application.port.out.TransferLedgerPort;
-import com.pay.transfer.application.port.out.TransferRepository;
-import com.pay.transfer.application.port.out.TransferWalletPort;
-import com.pay.transfer.domain.Transfer;
-import com.pay.transfer.domain.TransferStatus;
+import com.pay.wallet.application.port.out.LedgerRepository;
+import com.pay.wallet.application.port.out.TransferRepository;
+import com.pay.wallet.application.port.out.WalletRepository;
+import com.pay.wallet.application.service.TransferService;
+import com.pay.wallet.domain.Transfer;
+import com.pay.wallet.domain.TransferStatus;
 import com.pay.wallet.domain.Ledger;
 import com.pay.wallet.domain.Wallet;
 import com.pay.wallet.domain.WalletStatus;
@@ -43,10 +44,10 @@ class TransferServiceTest {
     private TransferRepository transferRepository;
 
     @Mock
-    private TransferWalletPort transferWalletPort;
+    private WalletRepository walletRepository;
 
     @Mock
-    private TransferLedgerPort transferLedgerPort;
+    private LedgerRepository ledgerRepository;
 
     @Mock
     private TransactionTemplate transactionTemplate;
@@ -71,11 +72,12 @@ class TransferServiceTest {
                     t.getCreatedAt(), t.getUpdatedAt());
         });
 
-        Wallet senderWallet = createWallet(1L, 1L, BigDecimal.valueOf(5000));
+        Wallet senderWallet = createWallet(1L, 1L, BigDecimal.valueOf(50000));
         Wallet receiverWallet = createWallet(2L, 2L, BigDecimal.valueOf(20000));
-        given(transferWalletPort.withdraw(1L, BigDecimal.valueOf(10000))).willReturn(senderWallet);
-        given(transferWalletPort.deposit(2L, BigDecimal.valueOf(10000))).willReturn(receiverWallet);
-        given(transferLedgerPort.save(any(Ledger.class))).willAnswer(inv -> inv.getArgument(0));
+        given(walletRepository.findByUserIdForUpdate(1L)).willReturn(Optional.of(senderWallet));
+        given(walletRepository.findByUserIdForUpdate(2L)).willReturn(Optional.of(receiverWallet));
+        given(walletRepository.save(any(Wallet.class))).willAnswer(inv -> inv.getArgument(0));
+        given(ledgerRepository.save(any(Ledger.class))).willAnswer(inv -> inv.getArgument(0));
 
         // when
         Transfer result = transferService.transfer(1L, 2L, BigDecimal.valueOf(10000), "tx-001", "테스트 송금");
@@ -83,9 +85,10 @@ class TransferServiceTest {
         // then
         assertThat(result.getStatus()).isEqualTo(TransferStatus.COMPLETED);
         verify(transferRepository, times(3)).save(any(Transfer.class));
-        verify(transferWalletPort).withdraw(1L, BigDecimal.valueOf(10000));
-        verify(transferWalletPort).deposit(2L, BigDecimal.valueOf(10000));
-        verify(transferLedgerPort, times(2)).save(any(Ledger.class));
+        verify(walletRepository).findByUserIdForUpdate(1L);
+        verify(walletRepository).findByUserIdForUpdate(2L);
+        verify(walletRepository, times(2)).save(any(Wallet.class));
+        verify(ledgerRepository, times(2)).save(any(Ledger.class));
     }
 
     @Test
@@ -102,8 +105,7 @@ class TransferServiceTest {
                 .hasMessage("이미 처리된 송금 요청입니다.");
 
         verify(transferRepository, never()).save(any(Transfer.class));
-        verify(transferWalletPort, never()).withdraw(anyLong(), any());
-        verify(transferWalletPort, never()).deposit(anyLong(), any());
+        verify(walletRepository, never()).findByUserIdForUpdate(anyLong());
     }
 
     @Test
@@ -117,8 +119,7 @@ class TransferServiceTest {
                     t.getAmount(), t.getTransactionId(), t.getStatus(), t.getMemo(),
                     t.getCreatedAt(), t.getUpdatedAt());
         });
-        given(transferWalletPort.withdraw(1L, BigDecimal.valueOf(10000)))
-                .willThrow(new IllegalArgumentException("잔액이 부족합니다."));
+        given(walletRepository.findByUserIdForUpdate(1L)).willReturn(Optional.empty());
 
         // when
         Transfer result = transferService.transfer(1L, 2L, BigDecimal.valueOf(10000), "tx-001", "메모");
@@ -126,8 +127,8 @@ class TransferServiceTest {
         // then
         assertThat(result.getStatus()).isEqualTo(TransferStatus.FAILED);
         verify(transferRepository, times(2)).save(any(Transfer.class));
-        verify(transferWalletPort, never()).deposit(anyLong(), any());
-        verify(transferLedgerPort, never()).save(any(Ledger.class));
+        verify(walletRepository, never()).findByUserIdForUpdate(2L);
+        verify(ledgerRepository, never()).save(any(Ledger.class));
     }
 
     @Test
@@ -142,12 +143,13 @@ class TransferServiceTest {
                     t.getCreatedAt(), t.getUpdatedAt());
         });
 
-        Wallet senderWallet = createWallet(1L, 1L, BigDecimal.valueOf(5000));
-        given(transferWalletPort.withdraw(1L, BigDecimal.valueOf(10000))).willReturn(senderWallet);
-        given(transferWalletPort.deposit(2L, BigDecimal.valueOf(10000)))
-                .willThrow(new RuntimeException("입금 처리 실패"));
-        given(transferWalletPort.deposit(1L, BigDecimal.valueOf(10000))).willReturn(senderWallet);
-        given(transferLedgerPort.save(any(Ledger.class))).willAnswer(inv -> inv.getArgument(0));
+        Wallet senderWallet = createWallet(1L, 1L, BigDecimal.valueOf(50000));
+        Wallet receiverWallet = createWallet(2L, 2L, BigDecimal.valueOf(20000));
+        given(walletRepository.findByUserIdForUpdate(1L)).willReturn(Optional.of(senderWallet));
+        given(walletRepository.findByUserIdForUpdate(2L))
+                .willReturn(Optional.empty());
+        given(walletRepository.save(any(Wallet.class))).willAnswer(inv -> inv.getArgument(0));
+        given(ledgerRepository.save(any(Ledger.class))).willAnswer(inv -> inv.getArgument(0));
         given(transferRepository.findByIdForUpdate(1L)).willReturn(Optional.of(
                 Transfer.restore(1L, 1L, 2L, BigDecimal.valueOf(10000),
                         "1::tx-001", TransferStatus.WITHDRAWN, "메모",
@@ -159,8 +161,7 @@ class TransferServiceTest {
         // then
         assertThat(result.getStatus()).isEqualTo(TransferStatus.REFUNDED);
         verify(transferRepository, times(3)).save(any(Transfer.class));
-        verify(transferWalletPort).deposit(1L, BigDecimal.valueOf(10000));
-        verify(transferLedgerPort, times(2)).save(any(Ledger.class));
+        verify(ledgerRepository, times(2)).save(any(Ledger.class));
     }
 
     private Wallet createWallet(Long walletId, Long userId, BigDecimal balance) {

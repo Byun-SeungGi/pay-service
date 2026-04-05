@@ -1,4 +1,4 @@
-package com.pay.transfer.domain;
+package com.pay.wallet.domain;
 
 import lombok.AccessLevel;
 import lombok.Builder;

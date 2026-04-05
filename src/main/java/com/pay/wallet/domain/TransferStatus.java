@@ -1,4 +1,4 @@
-package com.pay.transfer.domain;
+package com.pay.wallet.domain;
 
 public enum TransferStatus {
     REQUESTED,     // 송금요청

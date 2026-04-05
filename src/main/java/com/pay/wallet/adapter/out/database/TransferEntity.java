@@ -1,8 +1,8 @@
-package com.pay.transfer.adapter.out.database;
+package com.pay.wallet.adapter.out.database;
 
 import com.pay.global.entity.BaseTimeEntity;
-import com.pay.transfer.domain.Transfer;
-import com.pay.transfer.domain.TransferStatus;
+import com.pay.wallet.domain.Transfer;
+import com.pay.wallet.domain.TransferStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

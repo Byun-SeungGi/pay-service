@@ -1,6 +1,6 @@
-package com.pay.transfer.application.port.out;
+package com.pay.wallet.application.port.out;
 
-import com.pay.transfer.domain.Transfer;
+import com.pay.wallet.domain.Transfer;
 
 import java.time.LocalDateTime;
 import java.util.List;

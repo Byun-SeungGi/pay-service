@@ -1,6 +1,6 @@
-package com.pay.transfer.application.port.in;
+package com.pay.wallet.application.port.in;
 
-import com.pay.transfer.domain.Transfer;
+import com.pay.wallet.domain.Transfer;
 
 import java.math.BigDecimal;
 

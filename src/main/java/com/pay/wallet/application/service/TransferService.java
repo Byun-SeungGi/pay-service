@@ -1,17 +1,13 @@
-package com.pay.transfer.application.service;
+package com.pay.wallet.application.service;
 
-import com.pay.transfer.application.port.in.TransferUseCase;
-import com.pay.transfer.application.port.out.TransferLedgerPort;
-import com.pay.transfer.application.port.out.TransferRepository;
-import com.pay.transfer.application.port.out.TransferWalletPort;
-import com.pay.transfer.domain.Transfer;
-import com.pay.transfer.domain.TransferStatus;
-import com.pay.wallet.domain.Ledger;
-import com.pay.wallet.domain.ReferenceType;
-import com.pay.wallet.domain.TransactionType;
-import com.pay.wallet.domain.Wallet;
+import com.pay.wallet.application.port.in.TransferUseCase;
+import com.pay.wallet.application.port.out.LedgerRepository;
+import com.pay.wallet.application.port.out.TransferRepository;
+import com.pay.wallet.application.port.out.WalletRepository;
+import com.pay.wallet.domain.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -23,8 +19,8 @@ import java.math.BigDecimal;
 public class TransferService implements TransferUseCase {
 
     private final TransferRepository transferRepository;
-    private final TransferWalletPort transferWalletPort;
-    private final TransferLedgerPort transferLedgerPort;
+    private final WalletRepository walletRepository;
+    private final LedgerRepository ledgerRepository;
     private final TransactionTemplate transactionTemplate;
 
     @Override
@@ -34,22 +30,30 @@ public class TransferService implements TransferUseCase {
 
         // TX1 : 중복체크 + Transfer 생성
         // 멱등성 키로 중복 요청 걸러내고 Transfer를 REQUESTED 상태로 저장.
-        Transfer saved = transactionTemplate.execute(status -> {
-            transferRepository.findByTransactionId(namespacedId)
-                 .ifPresent(transfer -> {
-                    throw new IllegalStateException("이미 처리된 송금 요청입니다.");
-                 });
-            return transferRepository.save(
-                    Transfer.create(senderUserId, receiverUserId, amount, namespacedId, memo));
-        });
-        
+        Transfer saved;
+        try {
+            saved = transactionTemplate.execute(status -> {
+                transferRepository.findByTransactionId(namespacedId)
+                        .ifPresent(transfer -> {
+                            throw new IllegalStateException("이미 처리된 송금 요청입니다.");
+                        });
+                return transferRepository.save(
+                        Transfer.create(senderUserId, receiverUserId, amount, namespacedId, memo));
+            });
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("이미 처리된 송금 요청입니다.");
+        }
+
         // TX2 : 출금 + 상태변경(WITHDRAWN) + 출금 원장
         // withdraw와 save(withdrawn)를 하나의 TX로 묶어 돈은 빠졌는데 상태는 REQUESTED인 상황을 제거
         // 실패 시 TX2 전체 롤백 -> 지갑 원래대로 복구
         Transfer withdrawn;
         try {
             withdrawn = transactionTemplate.execute(status -> {
-                Wallet senderWallet = transferWalletPort.withdraw(senderUserId, amount);
+                Wallet senderWallet = walletRepository.findByUserIdForUpdate(senderUserId)
+                        .orElseThrow(() -> new IllegalArgumentException("지갑이 존재하지 않습니다."));
+                senderWallet = senderWallet.withDraw(amount);
+                walletRepository.save(senderWallet);
                 Transfer w = transferRepository.save(saved.withDraw());
                 saveLedger(senderWallet, namespacedId, w, TransactionType.DEBIT, amount, memo);
                 return w;
@@ -64,7 +68,10 @@ public class TransferService implements TransferUseCase {
         // 실패 시 보상 트랜잭션(refund) 실행
         try {
             return transactionTemplate.execute(status -> {
-                Wallet receiverWallet = transferWalletPort.deposit(receiverUserId, amount);
+                Wallet receiverWallet = walletRepository.findByUserIdForUpdate(receiverUserId)
+                        .orElseThrow(() -> new IllegalArgumentException("지갑이 존재하지 않습니다."));
+                receiverWallet = receiverWallet.deposit(amount);
+                walletRepository.save(receiverWallet);
                 Transfer r = transferRepository.save(withdrawn.complete());
                 saveLedger(receiverWallet, namespacedId, r, TransactionType.CREDIT, amount, memo);
                 return r;
@@ -94,7 +101,10 @@ public class TransferService implements TransferUseCase {
                    return transfer;
                }
 
-               Wallet refundedWallet = transferWalletPort.deposit(transfer.getSenderUserId(), transfer.getAmount());
+               Wallet refundedWallet = walletRepository.findByUserIdForUpdate(transfer.getSenderUserId())
+                       .orElseThrow(() -> new IllegalArgumentException("지갑이 존재하지 않습니다."));
+               refundedWallet = refundedWallet.deposit(transfer.getAmount());
+               walletRepository.save(refundedWallet);
                Transfer refunded = transferRepository.save(transfer.refund());
                saveLedger(refundedWallet, transfer.getTransactionId(), refunded, TransactionType.CREDIT, transfer.getAmount(), transfer.getMemo());
                return refunded;
@@ -110,7 +120,7 @@ public class TransferService implements TransferUseCase {
     }
 
     private void saveLedger(Wallet wallet, String namespacedId, Transfer transfer, TransactionType type, BigDecimal amount, String memo) {
-        transferLedgerPort.save(Ledger.create(wallet.getWalletId(), namespacedId, ReferenceType.REMITTANCE,
+        ledgerRepository.save(Ledger.create(wallet.getWalletId(), namespacedId, ReferenceType.REMITTANCE,
                 transfer.getTransferId(), type, amount, wallet.getBalance(), memo));
     }
 }

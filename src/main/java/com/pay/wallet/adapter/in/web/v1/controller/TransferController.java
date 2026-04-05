@@ -1,10 +1,10 @@
-package com.pay.transfer.adapter.in.web.v1.controller;
+package com.pay.wallet.adapter.in.web.v1.controller;
 
 import com.pay.global.constant.ApiUrl;
 import com.pay.global.response.ApiResponse;
-import com.pay.transfer.adapter.in.web.v1.dto.TransferRequestDto;
-import com.pay.transfer.application.port.in.TransferUseCase;
-import com.pay.transfer.domain.Transfer;
+import com.pay.wallet.adapter.in.web.v1.dto.TransferRequestDto;
+import com.pay.wallet.application.port.in.TransferUseCase;
+import com.pay.wallet.domain.Transfer;
 import com.pay.user.adapter.in.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
