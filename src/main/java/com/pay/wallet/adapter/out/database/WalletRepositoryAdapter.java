@@ -32,4 +32,10 @@ public class WalletRepositoryAdapter implements WalletRepository {
         return walletJpaRepository.findByUserId(userId)
                 .map(WalletEntity::toDomain);
     }
+
+    @Override
+    public Optional<Wallet> findByUserIdForUpdate(Long userId) {
+        return walletJpaRepository.findByUserIdForUpdate(userId)
+                .map(WalletEntity::toDomain);
+    }
 }

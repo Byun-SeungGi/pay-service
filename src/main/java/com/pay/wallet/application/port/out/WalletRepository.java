@@ -11,4 +11,6 @@ public interface WalletRepository {
     boolean existsByUserId(Long userId);
 
     Optional<Wallet> findByUserId(Long userId);
+
+    Optional<Wallet> findByUserIdForUpdate(Long userId);
 }
