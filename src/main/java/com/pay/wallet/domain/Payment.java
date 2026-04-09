@@ -17,11 +17,12 @@ public class Payment {
     private final BigDecimal amount;
     private final BigDecimal cancelAmount;
     private final PaymentStatus status;
+    private final String tossResponse;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
     @Builder(builderMethodName = "innerBuilder", access = AccessLevel.PRIVATE)
-    private Payment(Long paymentId, String paymentKey, String orderId, Long userId, BigDecimal amount, BigDecimal cancelAmount, PaymentStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    private Payment(Long paymentId, String paymentKey, String orderId, Long userId, BigDecimal amount, BigDecimal cancelAmount, PaymentStatus status, String tossResponse, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.paymentId = paymentId;
         this.paymentKey = paymentKey;
         this.orderId = orderId;
@@ -29,6 +30,7 @@ public class Payment {
         this.amount = amount;
         this.cancelAmount = cancelAmount;
         this.status = status;
+        this.tossResponse = tossResponse;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -46,10 +48,11 @@ public class Payment {
                 .amount(amount)
                 .cancelAmount(BigDecimal.ZERO)
                 .status(PaymentStatus.READY)
+                .tossResponse(null)
                 .build();
     }
 
-    public static Payment restore(Long paymentId, String paymentKey, String orderId, Long userId, BigDecimal amount, BigDecimal canceledAmount, PaymentStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public static Payment restore(Long paymentId, String paymentKey, String orderId, Long userId, BigDecimal amount, BigDecimal canceledAmount, PaymentStatus status, String tossResponse, LocalDateTime createdAt, LocalDateTime updatedAt) {
         return Payment.innerBuilder()
                 .paymentId(paymentId)
                 .paymentKey(paymentKey)
@@ -58,6 +61,7 @@ public class Payment {
                 .amount(amount)
                 .cancelAmount(canceledAmount)
                 .status(status)
+                .tossResponse(tossResponse)
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
                 .build();
@@ -99,6 +103,21 @@ public class Payment {
         }
 
         return modifyStatus(PaymentStatus.FAILED, this.cancelAmount);
+    }
+
+    public Payment withTossResponse(String tossResponse) {
+        return Payment.innerBuilder()
+                .paymentId(paymentId)
+                .paymentKey(paymentKey)
+                .orderId(orderId)
+                .userId(userId)
+                .amount(amount)
+                .cancelAmount(cancelAmount)
+                .status(status)
+                .tossResponse(tossResponse)
+                .createdAt(createdAt)
+                .updatedAt(updatedAt)
+                .build();
     }
 
     private Payment modifyStatus(PaymentStatus status, BigDecimal cancelAmount) {

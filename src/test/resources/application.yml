@@ -10,6 +10,9 @@ spring:
   flyway:
     enabled: false
 
+tosspayments:
+  secret-key: test_sk_00000000000000000
+
 jwt:
   secret: JxhRkDchxYaUlbEurN9dxNGt4LsJ8scCCD5aqvh2pZiA3YOpeVdNxyIlkITtda3q3AzXHq6bZcA2TMywTtp/5g==
   access-expiration: 86400

@@ -39,6 +39,8 @@ public class SecurityConfig {
                                 "/error",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
+                                "/tossPayment.html",
+                                "/tossPayment-success.html",
                                 "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )

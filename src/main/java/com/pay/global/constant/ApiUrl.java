@@ -16,4 +16,5 @@ public final class ApiUrl {
     public static final String CHARGE = WALLET_URL + "/charge";
 
     public static final String TRANSFER_URL = API_V1 + "/transfer";
+    public static final String PAYMENT_URL = API_V1 + "/payments/confirm";
 }

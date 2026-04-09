@@ -33,6 +33,10 @@ jwt:
   secret: ${JWT_SECRET}
   access-expiration: 86400
 
+tosspayments:
+  secret-key: ${TOSS_SECRET_KEY}
+
+
 logging:
   level:
     org.springframework.security: DEBUG

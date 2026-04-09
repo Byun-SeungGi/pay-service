@@ -6,6 +6,7 @@ CREATE TABLE payment (
     amount DECIMAL(19, 4) NOT NULL COMMENT '결제 금액',
     cancel_amount DECIMAL(19, 4) NOT NULL DEFAULT 0 COMMENT '누적 취소 금액',
     status VARCHAR(20) NOT NULL DEFAULT 'READY' COMMENT '결제 상태',
+    toss_response TEXT COMMENT '토스 승인 응답 원본 JSON',
     created_at DATETIME(6) NOT NULL DEFAULT NOW(6) COMMENT '결제생성일시',
     updated_at DATETIME(6) NOT NULL DEFAULT NOW(6) COMMENT '상태변경일시',
 
