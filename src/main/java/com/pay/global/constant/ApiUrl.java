@@ -17,4 +17,5 @@ public final class ApiUrl {
 
     public static final String TRANSFER_URL = API_V1 + "/transfer";
     public static final String PAYMENT_URL = API_V1 + "/payments/confirm";
+    public static final String PAYMENT_FIND_URL = API_V1 + "/payments/find";
 }

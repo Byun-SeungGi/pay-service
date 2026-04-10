@@ -4,8 +4,8 @@ import com.pay.global.constant.ApiUrl;
 import com.pay.global.response.ApiResponse;
 import com.pay.user.adapter.in.security.CustomUserDetails;
 import com.pay.wallet.application.port.in.PaymentConfirmUseCase;
+import com.pay.wallet.application.port.in.PaymentFindUseCase;
 import com.pay.wallet.domain.Payment;
-import com.pay.wallet.domain.PaymentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,12 +14,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 public class PaymentController {
 
     private final PaymentConfirmUseCase paymentConfirmUseCase;
+    private final PaymentFindUseCase paymentFindUseCase;
 
     @PostMapping(ApiUrl.PAYMENT_URL)
     public ApiResponse<Long> confirmPayment(@AuthenticationPrincipal CustomUserDetails userDetails
@@ -34,4 +36,11 @@ public class PaymentController {
         return ApiResponse.success("결제 승인이 완료되었습니다.", payment.getPaymentId());
     }
 
+    @GetMapping(ApiUrl.PAYMENT_FIND_URL)
+    public ApiResponse<List<Payment>> findPayments(@AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        List<Payment> findPayments = paymentFindUseCase.findByUserId(userDetails.getUser().getUserId());
+
+        return ApiResponse.success("결제 내역 조회에 성공했습니다.", findPayments);
+    }
 }

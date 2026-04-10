@@ -5,6 +5,8 @@ import com.pay.wallet.domain.Payment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 @RequiredArgsConstructor
 public class PaymentRepositoryAdapter implements PaymentRepository {
@@ -17,5 +19,13 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
         PaymentEntity saved = paymentJpaRepository.save(entity);
 
         return saved.toDomain();
+    }
+
+    @Override
+    public List<Payment> findByUserId(Long userId) {
+        return paymentJpaRepository.findByUserId(userId)
+                .stream()
+                .map(PaymentEntity::toDomain)
+                .toList();
     }
 }
