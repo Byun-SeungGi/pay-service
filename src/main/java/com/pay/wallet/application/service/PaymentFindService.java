@@ -5,6 +5,7 @@ import com.pay.wallet.application.port.out.PaymentRepository;
 import com.pay.wallet.domain.Payment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 

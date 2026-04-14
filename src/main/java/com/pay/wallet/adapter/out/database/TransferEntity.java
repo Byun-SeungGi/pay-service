@@ -34,7 +34,7 @@ public class TransferEntity extends BaseTimeEntity {
     private String transactionId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private TransferStatus status;
 
     @Column(name = "memo")

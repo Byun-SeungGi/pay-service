@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "3. 송금", description = "송금 기능")
+@Tag(name = "4. 송금", description = "송금 기능")
 @RestController
 @RequiredArgsConstructor
 public class TransferController {

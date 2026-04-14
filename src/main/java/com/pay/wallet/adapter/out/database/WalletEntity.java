@@ -36,7 +36,7 @@ public class WalletEntity extends BaseTimeEntity {
     private Long version;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private WalletStatus status;
 
     public static WalletEntity fromDomain(Wallet wallet) {

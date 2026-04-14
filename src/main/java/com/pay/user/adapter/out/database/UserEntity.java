@@ -35,7 +35,7 @@ public class UserEntity extends BaseTimeEntity {
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private UserStatus status;
 
     @Column(name = "withdrawn_at")

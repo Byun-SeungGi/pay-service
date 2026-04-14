@@ -37,10 +37,10 @@ public class PaymentEntity extends BaseTimeEntity {
     private BigDecimal cancelAmount;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
+    @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private PaymentStatus status;
 
-    @Column(name = "toss_response")
+    @Column(name = "toss_response", columnDefinition = "TEXT")
     private String tossResponse;
 
     public static PaymentEntity fromDomain(Payment payment) {

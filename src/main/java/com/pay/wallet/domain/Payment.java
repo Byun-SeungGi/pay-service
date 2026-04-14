@@ -88,7 +88,15 @@ public class Payment {
             throw new IllegalStateException("취소 가능한 상태가 아닙니다.");
         }
 
+        if(cancelAmount == null || cancelAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("취소 금액은 0원보다 커야 합니다.");
+        }
+
         BigDecimal newCancelAmount = this.cancelAmount.add(cancelAmount);
+
+        if(newCancelAmount.compareTo(this.amount) > 0) {
+            throw new IllegalArgumentException("취소 금액이 결제 금액을 초과할 수 없습니다.");
+        }
 
         PaymentStatus newStatus = newCancelAmount.compareTo(this.amount) == 0
                 ? PaymentStatus.CANCELED

@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 
-@Tag(name = "2. 지갑관리", description = "지갑충전")
+@Tag(name = "3. 지갑관리", description = "지갑충전")
 @RestController
 @RequiredArgsConstructor
 public class WalletChargeController {

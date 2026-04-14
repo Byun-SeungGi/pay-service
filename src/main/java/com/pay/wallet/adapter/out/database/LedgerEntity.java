@@ -29,14 +29,14 @@ public class LedgerEntity {
     private String transactionId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private ReferenceType referenceType;
 
     @Column(name = "reference_id", nullable = false)
     private Long referenceId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     private TransactionType transactionType;
 
     @Column(name = "amount", nullable = false)

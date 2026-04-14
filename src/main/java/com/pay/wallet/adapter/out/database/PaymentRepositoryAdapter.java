@@ -28,4 +28,11 @@ public class PaymentRepositoryAdapter implements PaymentRepository {
                 .map(PaymentEntity::toDomain)
                 .toList();
     }
+
+    @Override
+    public Payment findById(Long paymentId) {
+        return paymentJpaRepository.findById(paymentId)
+                .map(PaymentEntity::toDomain)
+                .orElseThrow(() -> new IllegalStateException("결제를 찾을 수 없습니다."));
+    }
 }

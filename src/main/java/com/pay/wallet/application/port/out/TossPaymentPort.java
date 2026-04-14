@@ -6,5 +6,5 @@ public interface TossPaymentPort {
 
     String confirm(String paymentKey, String orderId, BigDecimal amount);
 
-    // String cancel(String paymentKey, String orderId, Long userId);
+    String cancel(String paymentKey, String cancelReason, BigDecimal cancelAmount, String idempotencyKey);
 }

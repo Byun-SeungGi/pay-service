@@ -9,4 +9,6 @@ public interface PaymentRepository {
     Payment save(Payment payment);
 
     List<Payment> findByUserId(Long userId);
+
+    Payment findById(Long paymentId);
 }
