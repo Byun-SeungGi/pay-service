@@ -16,8 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.Duration;
-import java.time.Instant;
 
 @Slf4j
 @Service
@@ -35,11 +33,6 @@ public class WalletChargeService implements WalletChargeUseCase {
     @Override
     @Transactional
     public Wallet charge(Long userId, BigDecimal amount, String transactionId) {
-
-        Instant keyCreatedAt = extractTimestamp(transactionId);
-        if (keyCreatedAt.isBefore(Instant.now().minus(Duration.ofDays(4)))) {
-            throw new IllegalArgumentException("만료된 멱등성 키입니다.");
-        }
 
         String namespacedId = userId + "::" + transactionId;
 
@@ -60,10 +53,5 @@ public class WalletChargeService implements WalletChargeUseCase {
         ledgerRepository.save(ledger);
 
         return savedWallet;
-    }
-
-    private Instant extractTimestamp(String uuid) {
-        long timestamp = Long.parseLong(uuid.replace("-", "").substring(0, 12), 16);
-        return Instant.ofEpochMilli(timestamp);
     }
 }

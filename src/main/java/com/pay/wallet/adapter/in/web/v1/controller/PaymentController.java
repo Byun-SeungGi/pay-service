@@ -57,7 +57,7 @@ public class PaymentController {
 
         Payment payment = paymentCancelUseCase.cancel(
                 request.paymentId(),
-                request.cancelAmount(),
+                request.parseCancelAmount(),
                 userDetails.getUser().getUserId(),
                 request.idempotencyKey(),
                 request.cancelReason()

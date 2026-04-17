@@ -7,10 +7,9 @@ import com.pay.wallet.domain.Payment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -22,32 +21,35 @@ public class PaymentService implements PaymentConfirmUseCase, PaymentCancelUseCa
     private final WalletChargeUseCase walletChargeUseCase;
     private final WalletRefundUseCase walletRefundUseCase;
     private final WalletRefundQueryUseCase walletRefundQueryUseCase;
+    private final TransactionTemplate transactionTemplate;
 
     @Override
-    @Transactional
     public Payment confirm(String paymentKey, String orderId, Long userId, BigDecimal amount) {
 
-        Payment payment = Payment.create(paymentKey, orderId, userId, amount);
-        Payment savedPayment = paymentRepository.save(payment);
+        Payment savedPayment = transactionTemplate.execute(status -> {
+            Payment payment = Payment.create(paymentKey, orderId, userId, amount);
+            return paymentRepository.save(payment);
+        });
 
         String tossResponse;
         try {
             tossResponse = tossPaymentPort.confirm(paymentKey, orderId, amount);
         } catch (Exception e) {
-            paymentRepository.save(savedPayment.fail());
+            transactionTemplate.executeWithoutResult(status ->
+                paymentRepository.save(savedPayment.fail())
+            );
             throw new IllegalStateException("토스 결제 승인에 실패했습니다.", e);
         }
 
-        Payment approvedPayment = savedPayment.approve().withTossResponse(tossResponse);
-        paymentRepository.save(approvedPayment);
-
-        walletChargeUseCase.charge(userId, amount, UUID.randomUUID().toString());
-
-        return approvedPayment;
+        return transactionTemplate.execute(status -> {
+            Payment approvedPayment = savedPayment.approve().withTossResponse(tossResponse);
+            paymentRepository.save(approvedPayment);
+            walletChargeUseCase.charge(userId, amount, orderId);
+            return approvedPayment;
+        });
     }
 
     @Override
-    @Transactional
     public Payment cancel(Long paymentId, BigDecimal cancelAmount, Long userId, String idempotencyKey, String cancelReason) {
 
         Payment payment = paymentRepository.findById(paymentId);
@@ -62,26 +64,23 @@ public class PaymentService implements PaymentConfirmUseCase, PaymentCancelUseCa
             return payment;
         }
 
+        BigDecimal actualCancelAmount = cancelAmount != null ? cancelAmount : payment.getAmount();
+
         String tossResponse;
         try {
-            tossResponse = tossPaymentPort.cancel(payment.getPaymentKey(), cancelReason, cancelAmount, idempotencyKey);
+            tossResponse = tossPaymentPort.cancel(payment.getPaymentKey(), cancelReason, actualCancelAmount, idempotencyKey);
         } catch (Exception e) {
             throw new IllegalStateException("토스 결제 취소에 실패했습니다.", e);
         }
 
-        Payment canceledPayment;
-        BigDecimal refundAmount;
+        return transactionTemplate.execute(status -> {
+            Payment canceledPayment = actualCancelAmount.compareTo(payment.getAmount()) == 0
+                    ? payment.cancel()
+                    : payment.cancelPartially(actualCancelAmount);
 
-        if(cancelAmount == null) {
-            canceledPayment = payment.cancel();
-            refundAmount = payment.getAmount();
-        } else {
-            canceledPayment = payment.cancelPartially(cancelAmount);
-            refundAmount = cancelAmount;
-        }
+            walletRefundUseCase.refund(userId, actualCancelAmount, idempotencyKey);
 
-        walletRefundUseCase.refund(userId, refundAmount, idempotencyKey);
-
-        return paymentRepository.save(canceledPayment);
+            return paymentRepository.save(canceledPayment);
+        });
     }
 }
