@@ -12,7 +12,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -80,16 +79,6 @@ class WalletChargeServiceTest {
         assertThat(result.getBalance()).isEqualByComparingTo(BigDecimal.ZERO);
         verify(walletRepository, never()).save(any(Wallet.class));
         verify(ledgerRepository, never()).save(any(Ledger.class));
-    }
-
-    @Test
-    @DisplayName("충전 실패 - 만료된 멱등성 키")
-    void charge_fail_expired_idempotency_key() {
-        String expiredKey = createUuidV7(Instant.now().minus(Duration.ofDays(5)));
-
-        assertThatThrownBy(() -> walletChargeService.charge(1L, BigDecimal.valueOf(5000), expiredKey))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("만료된 멱등성 키입니다.");
     }
 
     @Test

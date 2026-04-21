@@ -7,12 +7,14 @@ import com.pay.user.application.port.in.AuthLoginUseCase;
 import com.pay.global.constant.ApiUrl;
 import com.pay.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "2. 로그인", description = "로그인")
 @RestController
 @RequiredArgsConstructor
 public class AuthLoginController {
