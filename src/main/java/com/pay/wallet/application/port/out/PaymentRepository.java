@@ -2,6 +2,7 @@ package com.pay.wallet.application.port.out;
 
 import com.pay.wallet.domain.Payment;
 
+import java.time.Duration;
 import java.util.List;
 
 public interface PaymentRepository {
@@ -11,4 +12,6 @@ public interface PaymentRepository {
     List<Payment> findByUserId(Long userId);
 
     Payment findById(Long paymentId);
+
+    List<Payment> findReadyOlderThan(Duration duration);
 }
