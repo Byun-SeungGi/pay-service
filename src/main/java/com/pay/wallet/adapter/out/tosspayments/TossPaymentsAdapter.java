@@ -4,26 +4,22 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pay.wallet.application.port.out.TossPaymentPort;
 import com.pay.wallet.application.port.out.TossPaymentStatus;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
-import java.util.Base64;
 
 @Component
 public class TossPaymentsAdapter implements TossPaymentPort {
 
-    private final RestClient restClient;
     private final ObjectMapper objectMapper;
-    private final String secretKey;
+    private final RestClient tossRestClient;
 
-    public TossPaymentsAdapter(RestClient restClient, ObjectMapper objectMapper, @Value("${tosspayments.secret-key}") String secretKey) {
-        this.restClient = restClient;
+    public TossPaymentsAdapter(@Qualifier("tossRestClient") RestClient tossRestClient, ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
-        this.secretKey = secretKey;
+        this.tossRestClient = tossRestClient;
     }
 
     private record TossConfirmRequest(
@@ -37,15 +33,10 @@ public class TossPaymentsAdapter implements TossPaymentPort {
 
     @Override
     public String confirm(String paymentKey, String orderId, BigDecimal amount) {
-        String auth = Base64.getEncoder()
-                .encodeToString((secretKey + ":").getBytes());
-
         TossConfirmRequest body = new TossConfirmRequest(paymentKey, orderId, amount);
 
-        return restClient.post()
-                .uri("https://api.tosspayments.com/v1/payments/confirm")
-                .header("Authorization", "Basic " + auth)
-                .contentType(MediaType.APPLICATION_JSON)
+        return tossRestClient.post()
+                .uri("/confirm")
                 .body(body)
                 .retrieve()
                 .body(String.class);
@@ -53,16 +44,12 @@ public class TossPaymentsAdapter implements TossPaymentPort {
 
     @Override
     public String cancel(String paymentKey, String cancelReason, BigDecimal cancelAmount, String idempotencyKey) {
-        String auth = Base64.getEncoder()
-                .encodeToString((secretKey + ":").getBytes());
 
         TossCancelRequest body = new TossCancelRequest(cancelReason, cancelAmount);
 
-        return restClient.post()
-                .uri("https://api.tosspayments.com/v1/payments/{paymentKey}/cancel", paymentKey)
-                .header("Authorization", "Basic " + auth)
+        return tossRestClient.post()
+                .uri("/{paymentKey}/cancel", paymentKey)
                 .header("Idempotency-key", idempotencyKey)
-                .contentType(MediaType.APPLICATION_JSON)
                 .body(body)
                 .retrieve()
                 .body(String.class);
@@ -70,13 +57,9 @@ public class TossPaymentsAdapter implements TossPaymentPort {
 
     @Override
     public TossPaymentStatus getPayment(String paymentKey) {
-        String auth = Base64.getEncoder()
-                .encodeToString((secretKey + ":").getBytes());
-
         try {
-            String body = restClient.get()
-                    .uri("https://api.tosspayments.com/v1/payments/{paymentKey}", paymentKey)
-                    .header("Authorization", "Basic " + auth)
+            String body = tossRestClient.get()
+                    .uri("/{paymentKey}", paymentKey)
                     .retrieve()
                     .body(String.class);
 
