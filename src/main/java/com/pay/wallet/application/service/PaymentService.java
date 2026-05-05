@@ -4,6 +4,10 @@ import com.pay.wallet.application.port.in.*;
 import com.pay.wallet.application.port.out.PaymentRepository;
 import com.pay.wallet.application.port.out.TossPaymentPort;
 import com.pay.wallet.domain.Payment;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,30 +26,67 @@ public class PaymentService implements PaymentConfirmUseCase, PaymentCancelUseCa
     private final WalletRefundUseCase walletRefundUseCase;
     private final WalletRefundQueryUseCase walletRefundQueryUseCase;
     private final TransactionTemplate transactionTemplate;
+    private final MeterRegistry meterRegistry;
+
+    private Counter paymentSuccessCounter;
+    private Counter paymentFailureCounter;
+    private Timer paymentConfirmTimer;
+    private Timer tossApiTimer;
+
+    @PostConstruct
+    private void initMetrics() {
+        this.paymentSuccessCounter = Counter.builder("payment.confirm.count")
+                .tag("result", "success")
+                .description("결제 승인 횟수 (성공/실패)")
+                .register(meterRegistry);
+
+        this.paymentFailureCounter = Counter.builder("payment.confirm.count")
+                .tag("result", "failure")
+                .description("결제 승인 횟수 (성공/실패)")
+                .register(meterRegistry);
+
+        this.paymentConfirmTimer = Timer.builder("payment.confirm.duration")
+                .description("결제 승인 전체 처리 시간")
+                .register(meterRegistry);
+
+        this.tossApiTimer = Timer.builder("payment.toss.api.duration")
+                .tag("operation", "confirm")
+                .description("Toss API 호출시간")
+                .register(meterRegistry);
+    }
 
     @Override
     public Payment confirm(String paymentKey, String orderId, Long userId, BigDecimal amount) {
+        return paymentConfirmTimer.record(() -> {
+            try {
+                Payment savedPayment = transactionTemplate.execute(status -> {
+                    Payment payment = Payment.create(paymentKey, orderId, userId, amount);
+                    return paymentRepository.save(payment);
+                });
 
-        Payment savedPayment = transactionTemplate.execute(status -> {
-            Payment payment = Payment.create(paymentKey, orderId, userId, amount);
-            return paymentRepository.save(payment);
-        });
+                String tossResponse;
+                try {
+                    tossResponse = tossApiTimer.recordCallable(() -> tossPaymentPort.confirm(paymentKey, orderId, amount));
+                } catch (Exception e) {
+                    transactionTemplate.executeWithoutResult(status ->
+                            paymentRepository.save(savedPayment.fail())
+                    );
+                    throw new IllegalStateException("토스 결제 승인에 실패했습니다.", e);
+                }
 
-        String tossResponse;
-        try {
-            tossResponse = tossPaymentPort.confirm(paymentKey, orderId, amount);
-        } catch (Exception e) {
-            transactionTemplate.executeWithoutResult(status ->
-                paymentRepository.save(savedPayment.fail())
-            );
-            throw new IllegalStateException("토스 결제 승인에 실패했습니다.", e);
-        }
+                Payment result =  transactionTemplate.execute(status -> {
+                    Payment approvedPayment = savedPayment.approve().withTossResponse(tossResponse);
+                    paymentRepository.save(approvedPayment);
+                    walletChargeUseCase.charge(userId, amount, orderId);
+                    return approvedPayment;
+                });
 
-        return transactionTemplate.execute(status -> {
-            Payment approvedPayment = savedPayment.approve().withTossResponse(tossResponse);
-            paymentRepository.save(approvedPayment);
-            walletChargeUseCase.charge(userId, amount, orderId);
-            return approvedPayment;
+                paymentSuccessCounter.increment();
+                return result;
+            } catch (RuntimeException e) {
+                paymentFailureCounter.increment();
+                throw e;
+            }
         });
     }
 
