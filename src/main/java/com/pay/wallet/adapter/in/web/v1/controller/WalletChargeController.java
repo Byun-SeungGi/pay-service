@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.UUID;
 
 @Tag(name = "3. 지갑관리", description = "지갑충전")
 @RestController
@@ -31,11 +32,8 @@ public class WalletChargeController {
     @Operation(summary = "금액 충전", description = "userId에 해당하는 지갑에 amount를 이용하여 충전합니다.")
     @PostMapping(ApiUrl.CHARGE)
     public ApiResponse<BigDecimal> charge(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody @Valid WalletChargeRequestDto request, @RequestHeader("Idempotency-Key") String transactionId) {
-
-        Instant keyCreatedAt = extractTimestamp(transactionId);
-        if (keyCreatedAt.isBefore(Instant.now().minus(Duration.ofDays(4)))) {
-            throw new IllegalArgumentException("만료된 멱등성 키입니다.");
-        }
+        validateIdempotencyKeyFormat(transactionId);
+        validateIdempotencyKeyNotExpired(transactionId);
 
         Long userId = userDetails.getUser().getUserId();
         Wallet wallet = walletChargeUseCase.charge(userId, request.amount(), transactionId);
@@ -46,5 +44,23 @@ public class WalletChargeController {
     private Instant extractTimestamp(String uuid) {
         long timestamp = Long.parseLong(uuid.replace("-", "").substring(0, 12), 16);
         return Instant.ofEpochMilli(timestamp);
+    }
+
+    private void validateIdempotencyKeyFormat(String key) {
+        if(key == null || key.isBlank()) {
+            throw new IllegalArgumentException("유효하지 않은 멱등성 키 입니다.");
+        }
+        try {
+            UUID.fromString(key);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("유효하지 않은 멱등성 키입니다.");
+        }
+    }
+
+    private void validateIdempotencyKeyNotExpired(String key) {
+        Instant createdAt = extractTimestamp(key);
+        if (createdAt.isBefore(Instant.now().minus(Duration.ofDays(4)))) {
+            throw new IllegalArgumentException("만료된 멱등성 키입니다.");
+        }
     }
 }
