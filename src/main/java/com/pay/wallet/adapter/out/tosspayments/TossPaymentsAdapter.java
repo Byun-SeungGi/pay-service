@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pay.wallet.application.port.out.TossPaymentPort;
 import com.pay.wallet.application.port.out.TossPaymentStatus;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
@@ -12,6 +13,7 @@ import org.springframework.web.client.RestClient;
 import java.math.BigDecimal;
 
 @Component
+@Profile("!loadtest")
 public class TossPaymentsAdapter implements TossPaymentPort {
 
     private final ObjectMapper objectMapper;

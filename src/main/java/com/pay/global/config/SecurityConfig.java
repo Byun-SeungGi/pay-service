@@ -41,7 +41,8 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/tossPayment.html",
                                 "/tossPayment-success.html",
-                                "/v3/api-docs/**").permitAll()
+                                "/v3/api-docs/**",
+                                "/actuator/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenValidator), UsernamePasswordAuthenticationFilter.class)
