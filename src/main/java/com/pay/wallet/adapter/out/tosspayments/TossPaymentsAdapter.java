@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pay.wallet.application.port.out.TossPaymentPort;
 import com.pay.wallet.application.port.out.TossPaymentStatus;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -34,6 +36,8 @@ public class TossPaymentsAdapter implements TossPaymentPort {
     ) {}
 
     @Override
+    @CircuitBreaker(name ="toss")
+    @Retry(name ="toss")
     public String confirm(String paymentKey, String orderId, BigDecimal amount) {
         TossConfirmRequest body = new TossConfirmRequest(paymentKey, orderId, amount);
 
@@ -45,6 +49,8 @@ public class TossPaymentsAdapter implements TossPaymentPort {
     }
 
     @Override
+    @CircuitBreaker(name ="toss")
+    @Retry(name ="toss")
     public String cancel(String paymentKey, String cancelReason, BigDecimal cancelAmount, String idempotencyKey) {
 
         TossCancelRequest body = new TossCancelRequest(cancelReason, cancelAmount);
