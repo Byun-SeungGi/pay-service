@@ -2,6 +2,8 @@ package com.pay.wallet.application.service;
 
 import com.pay.wallet.application.port.in.*;
 import com.pay.wallet.application.port.out.PaymentRepository;
+import com.pay.wallet.application.port.out.TossCancelResult;
+import com.pay.wallet.application.port.out.TossConfirmResult;
 import com.pay.wallet.application.port.out.TossPaymentPort;
 import com.pay.wallet.domain.Payment;
 import com.pay.wallet.domain.PaymentStatus;
@@ -78,9 +80,9 @@ public class PaymentService implements PaymentConfirmUseCase, PaymentCancelUseCa
                 });
                 statusCounters.get(PaymentStatus.READY).increment();
 
-                String tossResponse;
+                TossConfirmResult confirmResult;
                 try {
-                    tossResponse = tossApiTimer.recordCallable(() -> tossPaymentPort.confirm(paymentKey, orderId, amount));
+                    confirmResult = tossApiTimer.recordCallable(() -> tossPaymentPort.confirm(paymentKey, orderId, amount));
                 } catch (Exception e) {
                     transactionTemplate.executeWithoutResult(status ->
                             paymentRepository.save(savedPayment.fail())
@@ -90,7 +92,7 @@ public class PaymentService implements PaymentConfirmUseCase, PaymentCancelUseCa
                 }
 
                 Payment result =  transactionTemplate.execute(status -> {
-                    Payment approvedPayment = savedPayment.approve().withTossResponse(tossResponse);
+                    Payment approvedPayment = savedPayment.approve().withTossResponse(confirmResult.rawResponse());
                     paymentRepository.save(approvedPayment);
                     walletChargeUseCase.charge(userId, amount, orderId);
                     return approvedPayment;
@@ -123,9 +125,9 @@ public class PaymentService implements PaymentConfirmUseCase, PaymentCancelUseCa
 
         BigDecimal actualCancelAmount = cancelAmount != null ? cancelAmount : payment.getAmount();
 
-        String tossResponse;
+        TossCancelResult cancelResult;
         try {
-            tossResponse = tossPaymentPort.cancel(payment.getPaymentKey(), cancelReason, actualCancelAmount, idempotencyKey);
+            cancelResult = tossPaymentPort.cancel(payment.getPaymentKey(), cancelReason, actualCancelAmount, idempotencyKey);
         } catch (Exception e) {
             throw new IllegalStateException("토스 결제 취소에 실패했습니다.", e);
         }
