@@ -2,8 +2,12 @@ package com.pay.wallet.adapter.out.tosspayments;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pay.wallet.application.port.out.TossCancelResult;
+import com.pay.wallet.application.port.out.TossConfirmResult;
 import com.pay.wallet.application.port.out.TossPaymentPort;
 import com.pay.wallet.application.port.out.TossPaymentStatus;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -34,27 +38,35 @@ public class TossPaymentsAdapter implements TossPaymentPort {
     ) {}
 
     @Override
-    public String confirm(String paymentKey, String orderId, BigDecimal amount) {
+    @CircuitBreaker(name ="toss")
+    @Retry(name ="toss")
+    public TossConfirmResult confirm(String paymentKey, String orderId, BigDecimal amount) {
         TossConfirmRequest body = new TossConfirmRequest(paymentKey, orderId, amount);
 
-        return tossRestClient.post()
+        String rawResponse = tossRestClient.post()
                 .uri("/confirm")
                 .body(body)
                 .retrieve()
                 .body(String.class);
+
+        return new TossConfirmResult(paymentKey, rawResponse);
     }
 
     @Override
-    public String cancel(String paymentKey, String cancelReason, BigDecimal cancelAmount, String idempotencyKey) {
+    @CircuitBreaker(name ="toss")
+    @Retry(name ="toss")
+    public TossCancelResult cancel(String paymentKey, String cancelReason, BigDecimal cancelAmount, String idempotencyKey) {
 
         TossCancelRequest body = new TossCancelRequest(cancelReason, cancelAmount);
 
-        return tossRestClient.post()
+        String rawResponse = tossRestClient.post()
                 .uri("/{paymentKey}/cancel", paymentKey)
                 .header("Idempotency-key", idempotencyKey)
                 .body(body)
                 .retrieve()
                 .body(String.class);
+
+        return new TossCancelResult(paymentKey, rawResponse);
     }
 
     @Override

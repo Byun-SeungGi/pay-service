@@ -1,0 +1,4 @@
+fake-toss:
+  failure-rate: 0.80
+  min-latency-ms: 30
+  max-latency-ms: 150

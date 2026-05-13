@@ -2,8 +2,11 @@ package com.pay.wallet.application.service;
 
 import com.pay.wallet.application.port.in.*;
 import com.pay.wallet.application.port.out.PaymentRepository;
+import com.pay.wallet.application.port.out.TossCancelResult;
+import com.pay.wallet.application.port.out.TossConfirmResult;
 import com.pay.wallet.application.port.out.TossPaymentPort;
 import com.pay.wallet.domain.Payment;
+import com.pay.wallet.domain.PaymentStatus;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -14,6 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +38,7 @@ public class PaymentService implements PaymentConfirmUseCase, PaymentCancelUseCa
     private Counter paymentFailureCounter;
     private Timer paymentConfirmTimer;
     private Timer tossApiTimer;
+    private Map<PaymentStatus, Counter> statusCounters;
 
     @PostConstruct
     private void initMetrics() {
@@ -53,6 +60,14 @@ public class PaymentService implements PaymentConfirmUseCase, PaymentCancelUseCa
                 .tag("operation", "confirm")
                 .description("Toss API 호출시간")
                 .register(meterRegistry);
+        this.statusCounters = Arrays.stream(PaymentStatus.values())
+                .collect(Collectors.toMap(
+                        status -> status,
+                        status -> Counter.builder("payment.status.count")
+                                .tag("status", status.name())
+                                .description("결제 상태 전이 횟수")
+                                .register(meterRegistry)
+                ));
     }
 
     @Override
@@ -63,23 +78,26 @@ public class PaymentService implements PaymentConfirmUseCase, PaymentCancelUseCa
                     Payment payment = Payment.create(paymentKey, orderId, userId, amount);
                     return paymentRepository.save(payment);
                 });
+                statusCounters.get(PaymentStatus.READY).increment();
 
-                String tossResponse;
+                TossConfirmResult confirmResult;
                 try {
-                    tossResponse = tossApiTimer.recordCallable(() -> tossPaymentPort.confirm(paymentKey, orderId, amount));
+                    confirmResult = tossApiTimer.recordCallable(() -> tossPaymentPort.confirm(paymentKey, orderId, amount));
                 } catch (Exception e) {
                     transactionTemplate.executeWithoutResult(status ->
                             paymentRepository.save(savedPayment.fail())
                     );
+                    statusCounters.get(PaymentStatus.FAILED).increment();
                     throw new IllegalStateException("토스 결제 승인에 실패했습니다.", e);
                 }
 
                 Payment result =  transactionTemplate.execute(status -> {
-                    Payment approvedPayment = savedPayment.approve().withTossResponse(tossResponse);
+                    Payment approvedPayment = savedPayment.approve().withTossResponse(confirmResult.rawResponse());
                     paymentRepository.save(approvedPayment);
                     walletChargeUseCase.charge(userId, amount, orderId);
                     return approvedPayment;
                 });
+                statusCounters.get(PaymentStatus.APPROVED).increment();
 
                 paymentSuccessCounter.increment();
                 return result;
@@ -107,14 +125,14 @@ public class PaymentService implements PaymentConfirmUseCase, PaymentCancelUseCa
 
         BigDecimal actualCancelAmount = cancelAmount != null ? cancelAmount : payment.getAmount();
 
-        String tossResponse;
+        TossCancelResult cancelResult;
         try {
-            tossResponse = tossPaymentPort.cancel(payment.getPaymentKey(), cancelReason, actualCancelAmount, idempotencyKey);
+            cancelResult = tossPaymentPort.cancel(payment.getPaymentKey(), cancelReason, actualCancelAmount, idempotencyKey);
         } catch (Exception e) {
             throw new IllegalStateException("토스 결제 취소에 실패했습니다.", e);
         }
 
-        return transactionTemplate.execute(status -> {
+        Payment saved = transactionTemplate.execute(status -> {
             Payment canceledPayment = actualCancelAmount.compareTo(payment.getAmount()) == 0
                     ? payment.cancel()
                     : payment.cancelPartially(actualCancelAmount);
@@ -123,5 +141,7 @@ public class PaymentService implements PaymentConfirmUseCase, PaymentCancelUseCa
 
             return paymentRepository.save(canceledPayment);
         });
+        statusCounters.get(saved.getStatus()).increment();
+        return saved;
     }
 }
