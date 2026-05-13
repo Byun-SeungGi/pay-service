@@ -1,0 +1,38 @@
+# Gradle
+.gradle
+build
+out
+
+# IDE
+.idea
+*.iml
+*.iws
+.vscode
+
+# Git
+.git
+.gitignore
+.github
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Logs
+*.log
+logs/
+
+# Test
+.junit-results
+
+# 환경 설정 (보안)
+.env
+.env.*
+*.pem
+src/main/resources/application-local.yml
+src/main/resources/application.yml.backup
