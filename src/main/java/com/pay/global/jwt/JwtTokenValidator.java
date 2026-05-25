@@ -1,5 +1,7 @@
 package com.pay.global.jwt;
 
+import com.pay.user.adapter.in.security.CustomUserDetails;
+import com.pay.user.domain.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -8,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
@@ -19,13 +20,12 @@ import java.security.Key;
 public class JwtTokenValidator {
 
     private final Key key;
-    private final UserDetailsService userDetailsService;
+    private final JwtParser parser;
 
-    public JwtTokenValidator(@Value("${jwt.secret}") String secretKey,
-                             UserDetailsService userDetailsService) {
+    public JwtTokenValidator(@Value("${jwt.secret}") String secretKey) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
-        this.userDetailsService = userDetailsService;
+        this.parser = Jwts.parserBuilder().setSigningKey(key).build();
     }
 
     public String getEmail(String token) {
@@ -39,7 +39,7 @@ public class JwtTokenValidator {
 
     public Claims validateToken(String token) {
         try {
-            return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+            return parser.parseClaimsJws(token).getBody();
         } catch (SecurityException | MalformedJwtException e) {
             log.warn("잘못된 JWT 서명입니다.");
             throw new JwtException("잘못된 JWT 서명입니다.", e);
@@ -57,10 +57,12 @@ public class JwtTokenValidator {
 
     public Authentication getAuthentication(Claims claims) {
         String email = claims.getSubject();
+        Long userId = claims.get("uid", Long.class);
+        User stub = User.restoreForAuth(userId, email);
+        CustomUserDetails principal = new CustomUserDetails(stub);
+        // UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+        return new UsernamePasswordAuthenticationToken(principal, "", principal.getAuthorities());
     }
 
 }

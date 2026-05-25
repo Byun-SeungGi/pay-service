@@ -65,4 +65,11 @@ public class User {
         this.withdrawnAt = LocalDateTime.now();
     }
 
+    public static User restoreForAuth(Long userId, String email) {
+        return User.innerBuilder()
+                .userId(userId)
+                .email(email)
+                .status(UserStatus.ACTIVE)
+                .build();
+    }
 }
