@@ -42,7 +42,6 @@ db/
 
 ### AWS 배포 관련 ###
 application-local.yml
-application-prod.yml
 .env
 .env.*
 *.pem
