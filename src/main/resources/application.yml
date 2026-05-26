@@ -1,23 +1,10 @@
-server:
-  tomcat:
-    mbeanregistry:
-      enabled: true
-
 spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/pay_service?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: root
-    password: root
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      maximum-pool-size: 50
-      minimum-idle: 10
-      connection-timeout: 5000
+  profiles:
+    active: local
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
     properties:
       hibernate:
         format_sql: true
@@ -27,22 +14,10 @@ spring:
     enabled: true
     baseline-on-migrate: true
 
-  kafka:
-    bootstrap-servers: localhost:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-    consumer:
-      group-id: pay-service
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-
-  data:
-    redis:
-      host: localhost
-      port: 6379
-
+server:
+  tomcat:
+    mbeanregistry:
+      enabled: true
 
 jwt:
   secret: ${JWT_SECRET}
@@ -50,10 +25,6 @@ jwt:
 
 tosspayments:
   secret-key: ${TOSS_SECRET_KEY}
-
-logging:
-  level:
-    org.springframework.security: DEBUG
 
 management:
   endpoints:

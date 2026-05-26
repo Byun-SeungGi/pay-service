@@ -39,3 +39,10 @@ out/
 
 ### DB Data ###
 db/
+
+### AWS 배포 관련 ###
+application-local.yml
+.env
+.env.*
+*.pem
+*.backup
