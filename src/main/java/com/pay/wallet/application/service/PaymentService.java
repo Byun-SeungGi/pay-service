@@ -7,6 +7,7 @@ import com.pay.wallet.application.port.out.TossConfirmResult;
 import com.pay.wallet.application.port.out.TossPaymentPort;
 import com.pay.wallet.domain.Payment;
 import com.pay.wallet.domain.PaymentStatus;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -83,6 +84,9 @@ public class PaymentService implements PaymentConfirmUseCase, PaymentCancelUseCa
                 TossConfirmResult confirmResult;
                 try {
                     confirmResult = tossApiTimer.recordCallable(() -> tossPaymentPort.confirm(paymentKey, orderId, amount));
+                } catch (CallNotPermittedException e) {
+                    statusCounters.get(PaymentStatus.FAILED).increment();
+                    throw e;
                 } catch (Exception e) {
                     transactionTemplate.executeWithoutResult(status ->
                             paymentRepository.save(savedPayment.fail())
@@ -128,6 +132,8 @@ public class PaymentService implements PaymentConfirmUseCase, PaymentCancelUseCa
         TossCancelResult cancelResult;
         try {
             cancelResult = tossPaymentPort.cancel(payment.getPaymentKey(), cancelReason, actualCancelAmount, idempotencyKey);
+        } catch (CallNotPermittedException e) {
+          throw e;
         } catch (Exception e) {
             throw new IllegalStateException("토스 결제 취소에 실패했습니다.", e);
         }
