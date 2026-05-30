@@ -28,7 +28,7 @@ public class WalletChargeService implements WalletChargeUseCase {
     @Retryable(
             retryFor = OptimisticLockingFailureException.class,
             maxAttempts = 3,
-            backoff = @Backoff(delay = 1000)
+            backoff = @Backoff(delay = 50, multiplier = 2, random = true)
     )
     @Override
     @Transactional
