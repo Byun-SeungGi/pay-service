@@ -1,1 +1,0 @@
-ALTER TABLE ledger MODIFY transaction_id VARCHAR(60) NOT NULL COMMENT '멱등성 키';
