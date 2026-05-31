@@ -91,11 +91,11 @@ public class PaymentService implements PaymentConfirmUseCase, PaymentCancelUseCa
                     throw new IllegalStateException("토스 결제 승인에 실패했습니다.", e);
                 }
 
+                walletChargeUseCase.charge(userId, amount, orderId);
+
                 Payment result =  transactionTemplate.execute(status -> {
                     Payment approvedPayment = savedPayment.approve().withTossResponse(confirmResult.rawResponse());
-                    paymentRepository.save(approvedPayment);
-                    walletChargeUseCase.charge(userId, amount, orderId);
-                    return approvedPayment;
+                    return  paymentRepository.save(approvedPayment);
                 });
                 statusCounters.get(PaymentStatus.APPROVED).increment();
 

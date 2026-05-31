@@ -38,7 +38,7 @@ out/
 
 
 ### DB Data ###
-db/
+/db/
 
 ### AWS 배포 관련 ###
 application-local.yml

@@ -1,1 +1,0 @@
-ALTER TABLE ledger DROP COLUMN refernce_id;

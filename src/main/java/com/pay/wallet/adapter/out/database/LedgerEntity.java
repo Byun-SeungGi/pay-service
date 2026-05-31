@@ -13,7 +13,11 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Table(name = "ledger")
+@Table(name = "ledger", indexes = {
+        @Index(name = "uk_ledger_transaction_id", columnList = "transaction_id", unique = true),
+        @Index(name = "idx_ledger_wallet_date", columnList = "wallet_id, created_at"),
+        @Index(name = "idx_ledger_reference", columnList = "reference_type, reference_id")
+})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class LedgerEntity {
 
@@ -62,6 +66,7 @@ public class LedgerEntity {
         entity.amount = ledger.getAmount();
         entity.balanceSnapshot = ledger.getBalanceSnapshot();
         entity.memo = ledger.getMemo();
+        entity.createdAt = ledger.getCreatedAt() != null ? ledger.getCreatedAt() : LocalDateTime.now();
         return entity;
     }
 
