@@ -66,6 +66,7 @@ public class LedgerEntity {
         entity.amount = ledger.getAmount();
         entity.balanceSnapshot = ledger.getBalanceSnapshot();
         entity.memo = ledger.getMemo();
+        entity.createdAt = ledger.getCreatedAt() != null ? ledger.getCreatedAt() : LocalDateTime.now();
         return entity;
     }
 
