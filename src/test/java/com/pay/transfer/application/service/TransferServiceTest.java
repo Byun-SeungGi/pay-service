@@ -146,7 +146,6 @@ class TransferServiceTest {
         Wallet senderWallet = createWallet(1L, 1L, BigDecimal.valueOf(50000));
         given(walletRepository.findByUserIdForUpdate(1L)).willReturn(Optional.of(senderWallet));
         given(walletRepository.findByUserIdForUpdate(2L)).willReturn(Optional.empty());
-        given(walletRepository.save(any(Wallet.class))).willAnswer(inv -> inv.getArgument(0));
 
         // when
         Transfer result = transferService.transfer(1L, 2L, BigDecimal.valueOf(10000), "tx-001", "메모");
