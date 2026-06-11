@@ -12,7 +12,11 @@ import java.math.BigDecimal;
 
 @Entity
 @Getter
-@Table(name = "transfer")
+@Table(name = "transfer", indexes = {
+        @Index(name = "idx_transfer_sender_date", columnList = "sender_user_id, created_at"),
+        @Index(name = "idx_transfer_receiver_date", columnList = "receiver_user_id, created_at"),
+        @Index(name = "idx_transfer_status", columnList = "status")
+})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class TransferEntity extends BaseTimeEntity {
 

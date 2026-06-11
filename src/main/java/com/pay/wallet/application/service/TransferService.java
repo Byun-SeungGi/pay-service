@@ -48,19 +48,27 @@ public class TransferService implements TransferUseCase {
         // 실패 시 전체 롤백 → Transfer를 FAILED로 변경
         try {
             return transactionTemplate.execute(status -> {
-                Wallet senderWallet = walletRepository.findByUserIdForUpdate(senderUserId)
+                // 데드락 방지: userId 작은 wallet 부터 lock → 모든 트랜잭션이 동일 순서로 lock
+                Long firstId  = Math.min(senderUserId, receiverUserId);
+                Long secondId = Math.max(senderUserId, receiverUserId);
+
+                Wallet firstWallet = walletRepository.findByUserIdForUpdate(firstId)
                         .orElseThrow(() -> new IllegalArgumentException("지갑이 존재하지 않습니다."));
+                Wallet secondWallet = walletRepository.findByUserIdForUpdate(secondId)
+                        .orElseThrow(() -> new IllegalArgumentException("지갑이 존재하지 않습니다."));
+
+                Wallet senderWallet   = senderUserId.equals(firstId) ? firstWallet  : secondWallet;
+                Wallet receiverWallet = senderUserId.equals(firstId) ? secondWallet : firstWallet;
+
                 senderWallet = senderWallet.withDraw(amount);
                 walletRepository.save(senderWallet);
 
-                Wallet receiverWallet = walletRepository.findByUserIdForUpdate(receiverUserId)
-                        .orElseThrow(() -> new IllegalArgumentException("지갑이 존재하지 않습니다."));
                 receiverWallet = receiverWallet.deposit(amount);
                 walletRepository.save(receiverWallet);
 
                 Transfer completed = transferRepository.save(saved.complete());
-                saveLedger(senderWallet, namespacedId, completed, TransactionType.DEBIT, amount, memo);
-                saveLedger(receiverWallet, namespacedId, completed, TransactionType.CREDIT, amount, memo);
+                saveLedger(senderWallet, namespacedId + "::DEBIT", completed, TransactionType.DEBIT, amount, memo);
+                saveLedger(receiverWallet, namespacedId + "::CREDIT", completed, TransactionType.CREDIT, amount, memo);
                 return completed;
             });
         } catch (Exception e) {

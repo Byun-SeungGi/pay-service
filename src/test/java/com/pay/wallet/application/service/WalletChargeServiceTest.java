@@ -41,7 +41,7 @@ class WalletChargeServiceTest {
     void charge_success() {
         String key = createUuidV7(Instant.now());
         Wallet wallet = Wallet.create(1L);
-        given(walletRepository.findByUserId(1L)).willReturn(Optional.of(wallet));
+        given(walletRepository.findByUserIdForUpdate(1L)).willReturn(Optional.of(wallet));
         given(walletRepository.save(any(Wallet.class))).willAnswer(inv -> inv.getArgument(0));
         given(ledgerRepository.existsByTransactionId(anyString())).willReturn(false);
         given(ledgerRepository.save(any(Ledger.class))).willAnswer(inv -> inv.getArgument(0));
@@ -57,7 +57,7 @@ class WalletChargeServiceTest {
     @DisplayName("충전 실패 - 지갑 없음")
     void charge_fail_wallet_not_found() {
         String key = createUuidV7(Instant.now());
-        given(walletRepository.findByUserId(1L)).willReturn(Optional.empty());
+        given(walletRepository.findByUserIdForUpdate(1L)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> walletChargeService.charge(1L, BigDecimal.valueOf(5000), key))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -71,7 +71,7 @@ class WalletChargeServiceTest {
     void charge_duplicate_request() {
         String key = createUuidV7(Instant.now());
         Wallet wallet = Wallet.create(1L);
-        given(walletRepository.findByUserId(1L)).willReturn(Optional.of(wallet));
+        given(walletRepository.findByUserIdForUpdate(1L)).willReturn(Optional.of(wallet));
         given(ledgerRepository.existsByTransactionId("1::" + key)).willReturn(true);
 
         Wallet result = walletChargeService.charge(1L, BigDecimal.valueOf(5000), key);
@@ -88,8 +88,8 @@ class WalletChargeServiceTest {
         Wallet wallet1 = Wallet.create(1L);
         Wallet wallet2 = Wallet.create(2L);
 
-        given(walletRepository.findByUserId(1L)).willReturn(Optional.of(wallet1));
-        given(walletRepository.findByUserId(2L)).willReturn(Optional.of(wallet2));
+        given(walletRepository.findByUserIdForUpdate(1L)).willReturn(Optional.of(wallet1));
+        given(walletRepository.findByUserIdForUpdate(2L)).willReturn(Optional.of(wallet2));
         given(ledgerRepository.existsByTransactionId("1::" + key)).willReturn(false);
         given(ledgerRepository.existsByTransactionId("2::" + key)).willReturn(false);
         given(walletRepository.save(any(Wallet.class))).willAnswer(inv -> inv.getArgument(0));

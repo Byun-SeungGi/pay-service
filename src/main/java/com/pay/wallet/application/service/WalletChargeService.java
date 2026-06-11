@@ -28,7 +28,7 @@ public class WalletChargeService implements WalletChargeUseCase {
     @Retryable(
             retryFor = OptimisticLockingFailureException.class,
             maxAttempts = 3,
-            backoff = @Backoff(delay = 1000)
+            backoff = @Backoff(delay = 50, multiplier = 2, random = true)
     )
     @Override
     @Transactional
@@ -36,7 +36,7 @@ public class WalletChargeService implements WalletChargeUseCase {
 
         String namespacedId = userId + "::" + transactionId;
 
-        Wallet wallet = walletRepository.findByUserId(userId)
+        Wallet wallet = walletRepository.findByUserIdForUpdate(userId)
                 .orElseThrow(() -> new IllegalArgumentException("지갑이 존재하지 않습니다."));
 
         if(ledgerRepository.existsByTransactionId(namespacedId)) {

@@ -6,10 +6,11 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 50
-      minimum-idle: 10
+      minimum-idle: 50
       connection-timeout: 5000
 
   jpa:
+    open-in-view: false
     show-sql: false
 
   data:

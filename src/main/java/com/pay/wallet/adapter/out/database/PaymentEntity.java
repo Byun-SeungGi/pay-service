@@ -12,7 +12,12 @@ import java.math.BigDecimal;
 
 @Entity
 @Getter
-@Table(name = "payment")
+@Table(name = "payment", indexes = {
+        @Index(name = "uk_payment_payment_key", columnList = "payment_key", unique = true),
+        @Index(name = "uk_payment_order_id", columnList = "order_id", unique = true),
+        @Index(name = "idx_payment_user_date", columnList = "user_id, created_at"),
+        @Index(name = "idx_payment_status", columnList = "status")
+})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PaymentEntity extends BaseTimeEntity {
 
