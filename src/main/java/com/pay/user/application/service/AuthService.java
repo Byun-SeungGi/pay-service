@@ -33,6 +33,6 @@ public class AuthService implements AuthLoginUseCase {
             throw new IllegalArgumentException("활동 상태의 계정이 아닙니다.");
         }
 
-        return tokenProvider.createToken(user.getEmail());
+        return tokenProvider.createToken(user.getEmail(), user.getUserId());
     }
 }

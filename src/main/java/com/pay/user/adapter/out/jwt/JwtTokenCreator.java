@@ -26,12 +26,13 @@ public class JwtTokenCreator implements TokenProvider {
         this.accessExpiration = accessExpiration * 1000;
     }
 
-    public String createToken(String email) {
+    public String createToken(String email, Long userId) {
         long now = (new Date()).getTime();
         Date validty = new Date(now + this.accessExpiration);
 
         return Jwts.builder()
                 .setSubject(email)
+                .claim("uid", userId)
                 .setIssuedAt(new Date())
                 .setExpiration(validty)
                 .signWith(this.key, SignatureAlgorithm.HS256)
