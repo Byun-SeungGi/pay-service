@@ -1,6 +1,7 @@
 package com.pay.global.exception;
 
 import com.pay.global.response.ApiResponse;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,5 +33,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ApiResponse<Void>> handleIllegalStateException(IllegalStateException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail(e.getMessage()));
+    }
+
+    @ExceptionHandler(CallNotPermittedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCircuitOpen(CallNotPermittedException e) {
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .header("Retry-After", "10")
+                .body(ApiResponse.fail("일시적으로 결제 서비스를 이용할 수 없습니다."));
     }
 }
