@@ -4,6 +4,7 @@ import com.pay.user.application.port.in.AuthLoginCommand;
 import com.pay.user.application.port.out.TokenProvider;
 import com.pay.user.application.port.out.UserRepository;
 import com.pay.user.domain.User;
+import com.pay.user.domain.UserStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -38,11 +40,19 @@ class AuthServiceTest {
     @DisplayName("로그인 성공 시 JWT 토큰 반환")
     void login_success() throws Exception {
         AuthLoginCommand command = new AuthLoginCommand("gowawa@naver.com", "q!w2e3r4t5");
-        User fakeUser = User.create("gowawa@naver.com", "q!w2e3r4t5", "010-1234-5678");
+        User fakeUser = User.restore(
+                1L,
+                UUID.randomUUID(),
+                "gowawa@naver.com",
+                "q!w2e3r4t5",
+                "010-1234-5678",
+                UserStatus.ACTIVE,
+                null, null, null
+        );
 
         given(userRepository.findByEmail(anyString())).willReturn(Optional.of(fakeUser));
         given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
-        given(tokenProvider.createToken("gowawa@naver.com")).willReturn("mock.jwt.token");
+        given(tokenProvider.createToken("gowawa@naver.com", 1L)).willReturn("mock.jwt.token");
 
         String token = authService.login(command);
 

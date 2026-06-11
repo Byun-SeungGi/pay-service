@@ -1,5 +1,6 @@
-package com.pay.global.jwt;
+package com.pay.user.adapter.in.security;
 
+import com.pay.global.jwt.JwtTokenValidator;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,6 +21,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenValidator jwtTokenValidator;
+    private final JwtAuthenticationConverter jwtAuthenticationConverter;
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BEARER_PREFIX = "Bearer ";
 
@@ -31,7 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if(StringUtils.hasText(token)) {
             Claims claims = jwtTokenValidator.validateToken(token);
             if(!ObjectUtils.isEmpty(claims)) {
-                Authentication authentication = jwtTokenValidator.getAuthentication(claims);
+                Authentication authentication = jwtAuthenticationConverter.convert(claims);
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
