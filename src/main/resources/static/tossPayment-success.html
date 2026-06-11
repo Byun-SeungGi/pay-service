@@ -1,14 +1,235 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>결제 결과</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --primary: #3182F6;
+            --primary-hover: #2272eb;
+            --bg: #f2f4f6;
+            --card: #ffffff;
+            --text: #191f28;
+            --text-sub: #6b7684;
+            --border: #e5e8eb;
+            --success: #22c55e;
+            --error: #ef4444;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 440px;
+            background: var(--card);
+            border-radius: 20px;
+            padding: 40px 28px 28px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .icon-wrap {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f7f8f9;
+            transition: all 0.3s;
+        }
+
+        .icon-wrap svg {
+            width: 36px;
+            height: 36px;
+        }
+
+        .icon-wrap.success { background: rgba(34, 197, 94, 0.1); }
+        .icon-wrap.success svg { color: var(--success); }
+        .icon-wrap.error { background: rgba(239, 68, 68, 0.1); }
+        .icon-wrap.error svg { color: var(--error); }
+
+        .title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .message {
+            font-size: 14px;
+            color: var(--text-sub);
+            line-height: 1.5;
+            margin-bottom: 24px;
+            min-height: 21px;
+        }
+
+        .detail {
+            background: #f7f8f9;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .detail.show { display: block; }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            padding: 6px 0;
+        }
+
+        .detail-row .key { color: var(--text-sub); }
+        .detail-row .value { color: var(--text); font-weight: 500; }
+        .detail-row .value.amount { font-weight: 700; font-size: 15px; color: var(--primary); }
+
+        .btn {
+            width: 100%;
+            height: 52px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn-primary:hover { background: var(--primary-hover); }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-sub);
+            margin-top: 8px;
+        }
+
+        .btn-ghost:hover { color: var(--text); }
+
+        .loading-dots {
+            display: inline-flex;
+            gap: 4px;
+        }
+
+        .loading-dots span {
+            width: 6px;
+            height: 6px;
+            background: var(--text-sub);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.6); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .icon-wrap.animate {
+            animation: pop 0.4s ease-out;
+        }
+    </style>
 </head>
 <body>
-    <h2 id="resultTitle">결제 처리 중...</h2>
-    <p id="resultMessage"></p>
+    <div class="card">
+        <div class="icon-wrap" id="iconWrap">
+            <div class="loading-dots">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+
+        <h1 class="title" id="resultTitle">결제 처리 중</h1>
+        <p class="message" id="resultMessage">잠시만 기다려주세요</p>
+
+        <div class="detail" id="detail">
+            <div class="detail-row">
+                <span class="key">주문번호</span>
+                <span class="value" id="dOrderId">-</span>
+            </div>
+            <div class="detail-row">
+                <span class="key">결제금액</span>
+                <span class="value amount" id="dAmount">-</span>
+            </div>
+        </div>
+
+        <button class="btn btn-primary hidden" id="primaryBtn" onclick="goHome()">홈으로</button>
+        <button class="btn btn-ghost hidden" id="ghostBtn" onclick="goRetry()">다시 시도</button>
+    </div>
 
     <script>
+        const $ = (id) => document.getElementById(id);
+
+        const ICON_SUCCESS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        const ICON_ERROR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
+        function showSuccess(message, orderId, amount) {
+            const wrap = $("iconWrap");
+            wrap.classList.remove("error");
+            wrap.classList.add("success", "animate");
+            wrap.innerHTML = ICON_SUCCESS;
+            $("resultTitle").textContent = "결제가 완료되었어요";
+            $("resultMessage").textContent = message || "지갑에 충전되었습니다";
+
+            if (orderId && amount) {
+                $("dOrderId").textContent = orderId;
+                $("dAmount").textContent = Number(amount).toLocaleString() + "원";
+                $("detail").classList.add("show");
+            }
+
+            $("primaryBtn").classList.remove("hidden");
+        }
+
+        function showError(message) {
+            const wrap = $("iconWrap");
+            wrap.classList.remove("success");
+            wrap.classList.add("error", "animate");
+            wrap.innerHTML = ICON_ERROR;
+            $("resultTitle").textContent = "결제에 실패했어요";
+            $("resultMessage").textContent = message || "잠시 후 다시 시도해주세요";
+            $("primaryBtn").classList.remove("hidden");
+            $("ghostBtn").classList.remove("hidden");
+            $("ghostBtn").textContent = "다시 시도";
+        }
+
+        function goHome() {
+            window.location.href = "/tossPayment.html";
+        }
+
+        function goRetry() {
+            window.location.href = "/tossPayment.html";
+        }
+
         (async function () {
             const params = new URLSearchParams(window.location.search);
             const paymentKey = params.get("paymentKey");
@@ -16,36 +237,31 @@
             const amount = params.get("amount");
             const token = localStorage.getItem("token");
 
-            const titleEl = document.getElementById("resultTitle");
-            const msgEl = document.getElementById("resultMessage");
-
             if (!token) {
-                titleEl.textContent = "결제 실패";
-                msgEl.textContent = "로그인 정보가 없습니다. 다시 로그인 후 시도해주세요.";
+                showError("로그인 정보가 없습니다. 다시 로그인 후 시도해주세요");
+                return;
+            }
+
+            if (!paymentKey || !orderId || !amount) {
+                showError("결제 정보가 올바르지 않습니다");
                 return;
             }
 
             try {
-                const res = await fetch(
-                    `/api/v1/payments/confirm?paymentKey=${encodeURIComponent(paymentKey)}&orderId=${encodeURIComponent(orderId)}&amount=${encodeURIComponent(amount)}`,
-                    {
-                        method: "POST",
-                        headers: { "Authorization": "Bearer " + token }
-                    }
-                );
-
+                const url = `/api/v1/payments/confirm?paymentKey=${encodeURIComponent(paymentKey)}&orderId=${encodeURIComponent(orderId)}&amount=${encodeURIComponent(amount)}`;
+                const res = await fetch(url, {
+                    method: "POST",
+                    headers: { "Authorization": "Bearer " + token }
+                });
                 const result = await res.json();
 
                 if (res.ok && result.status === "SUCCESS") {
-                    titleEl.textContent = "결제 완료";
-                    msgEl.textContent = result.message;
+                    showSuccess(result.message, orderId, amount);
                 } else {
-                    titleEl.textContent = "결제 실패";
-                    msgEl.textContent = result.message || "결제 승인에 실패했습니다.";
+                    showError(result.message || "결제 승인에 실패했습니다");
                 }
             } catch (e) {
-                titleEl.textContent = "결제 실패";
-                msgEl.textContent = "서버 요청 중 오류가 발생했습니다.";
+                showError("서버 요청 중 오류가 발생했습니다");
             }
         })();
     </script>
